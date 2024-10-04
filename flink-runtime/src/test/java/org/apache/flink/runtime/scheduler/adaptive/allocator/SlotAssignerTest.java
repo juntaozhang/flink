@@ -111,55 +111,6 @@ class SlotAssignerTest {
     private static Collection<Object[]> getTestingParameters() {
         return Arrays.asList(
                 new Object[] {
-                    new StateLocalitySlotAssigner(),
-                    3,
-                    allSlots,
-                    createPreviousAllocations(
-                            createVertexAllocationInfo(slot1OfTml1, 512),
-                            createVertexAllocationInfo(slot1OfTml2, 256)),
-                    Arrays.asList(tml1, tml3)
-                },
-                new Object[] {
-                    new StateLocalitySlotAssigner(),
-                    2,
-                    allSlots,
-                    createPreviousAllocations(
-                            createVertexAllocationInfo(slot1OfTml1, 512),
-                            createVertexAllocationInfo(slot1OfTml2, 512)),
-                    singletonList(tml3)
-                },
-                new Object[] {
-                    new StateLocalitySlotAssigner(),
-                    6,
-                    allSlots,
-                    createPreviousAllocations(createVertexAllocationInfo(slot1OfTml2, 512)),
-                    Arrays.asList(tml1, tml2, tml3)
-                },
-                new Object[] {
-                    new StateLocalitySlotAssigner(),
-                    4,
-                    Arrays.asList(
-                            slot1OfTml1,
-                            slot2OfTml1,
-                            slot1OfTml2,
-                            slot2OfTml2,
-                            slot1OfTml3,
-                            slot2OfTml3),
-                    createPreviousAllocations(
-                            createVertexAllocationInfo(slot1OfTml2, 512),
-                            createVertexAllocationInfo(slot2OfTml3, 256)),
-                    Arrays.asList(tml2, tml3)
-                },
-                new Object[] {
-                    new StateLocalitySlotAssigner(),
-                    4,
-                    Arrays.asList(slot1OfTml1, slot2OfTml1, slot1OfTml2, slot2OfTml3),
-                    createPreviousAllocations(
-                            createVertexAllocationInfo(slot1OfTml2, 512),
-                            createVertexAllocationInfo(slot2OfTml3, 256)),
-                    Arrays.asList(tml1, tml2, tml3)
-                },
-                new Object[] {
                     new DefaultSlotAssigner(),
                     4,
                     Arrays.asList(slot1OfTml1, slot2OfTml1, slot1OfTml2, slot2OfTml3),

@@ -22,22 +22,16 @@ import org.apache.flink.runtime.jobmanager.scheduler.SlotSharingGroup;
 import org.apache.flink.runtime.jobmaster.SlotInfo;
 import org.apache.flink.runtime.scheduler.adaptive.JobSchedulingPlan.SlotAssignment;
 import org.apache.flink.runtime.scheduler.strategy.ExecutionVertexID;
-import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.function.Function.identity;
 import static org.apache.flink.runtime.scheduler.adaptive.allocator.SlotSharingSlotAllocator.ExecutionSlotSharingGroup;
-import static org.apache.flink.util.Preconditions.checkState;
 
 /** The Interface for assigning slots to slot sharing groups. */
 @Internal
@@ -48,48 +42,6 @@ public interface SlotAssigner {
             Collection<? extends SlotInfo> freeSlots,
             VertexParallelism vertexParallelism,
             JobAllocationsInformation previousAllocations);
-
-    /**
-     * Pick the target slots to assign with the requested groups.
-     *
-     * @param slotsByTaskExecutor slots per task executor.
-     * @param requestedGroups the number of the request execution slot sharing groups.
-     * @return the target slots that are distributed on the minimal task executors.
-     */
-    default Collection<? extends SlotInfo> pickSlotsInMinimalTaskExecutors(
-            Map<TaskManagerLocation, ? extends Set<? extends SlotInfo>> slotsByTaskExecutor,
-            int requestedGroups,
-            Iterator<TaskManagerLocation> sortedTaskExecutors) {
-        final List<SlotInfo> pickedSlots = new ArrayList<>();
-        while (pickedSlots.size() < requestedGroups) {
-            Set<? extends SlotInfo> slotInfos = slotsByTaskExecutor.get(sortedTaskExecutors.next());
-            pickedSlots.addAll(slotInfos);
-        }
-        return pickedSlots;
-    }
-
-    /**
-     * Sort the task executors with the order that aims to priority assigning requested groups on
-     * it.
-     *
-     * @param taskManagerLocations task executors to sort.
-     * @param taskExecutorComparator the comparator to compare the target task executors.
-     * @return The sorted task executors list with the specified order by the comparator.
-     */
-    static Iterator<TaskManagerLocation> sortTaskExecutors(
-            Collection<TaskManagerLocation> taskManagerLocations,
-            Comparator<TaskManagerLocation> taskExecutorComparator) {
-        return taskManagerLocations.stream().sorted(taskExecutorComparator).iterator();
-    }
-
-    static Map<TaskManagerLocation, ? extends Set<? extends SlotInfo>> getSlotsPerTaskExecutor(
-            Collection<? extends SlotInfo> slots) {
-        return slots.stream()
-                .collect(
-                        Collectors.groupingBy(
-                                SlotInfo::getTaskManagerLocation,
-                                Collectors.mapping(identity(), Collectors.toSet())));
-    }
 
     static List<ExecutionSlotSharingGroup> createExecutionSlotSharingGroups(
             VertexParallelism vertexParallelism, SlotSharingGroup slotSharingGroup) {
@@ -108,14 +60,5 @@ public interface SlotAssigner {
         return sharedSlotToVertexAssignment.values().stream()
                 .map(SlotSharingSlotAllocator.ExecutionSlotSharingGroup::new)
                 .collect(Collectors.toList());
-    }
-
-    static void checkSlotsSufficient(
-            JobInformation jobInformation, Collection<? extends SlotInfo> freeSlots) {
-        checkState(
-                freeSlots.size() >= jobInformation.getSlotSharingGroups().size(),
-                "Not enough slots to allocate all the slot sharing groups (have: %s, need: %s)",
-                freeSlots.size(),
-                jobInformation.getSlotSharingGroups().size());
     }
 }
