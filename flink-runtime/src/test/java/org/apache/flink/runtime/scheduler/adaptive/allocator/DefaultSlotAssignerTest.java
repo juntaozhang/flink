@@ -20,7 +20,6 @@ package org.apache.flink.runtime.scheduler.adaptive.allocator;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobmanager.scheduler.SlotSharingGroup;
 import org.apache.flink.runtime.jobmaster.SlotInfo;
-import org.apache.flink.runtime.state.KeyGroupRange;
 import org.apache.flink.runtime.taskmanager.LocalTaskManagerLocation;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
 import org.apache.flink.testutils.junit.extensions.parameterized.Parameter;
@@ -38,13 +37,12 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static org.apache.flink.runtime.scheduler.adaptive.allocator.JobAllocationsInformation.VertexAllocationInformation;
 import static org.apache.flink.runtime.scheduler.adaptive.allocator.JobInformation.VertexInformation;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** Test for {@link SlotAssigner}. */
+/** Test for {@link DefaultSlotAssigner}. */
 @ExtendWith(ParameterizedTestExtension.class)
-class SlotAssignerTest {
+class DefaultSlotAssignerTest {
 
     private static final TaskManagerLocation tml1 = new LocalTaskManagerLocation();
     private static final SlotInfo slot1OfTml1 = new TestingSlot(tml1);
@@ -74,22 +72,17 @@ class SlotAssignerTest {
     private static final JobVertex jobVertex = new JobVertex("testingJobVertex");
     private static final SlotSharingGroup slotSharingGroup = new SlotSharingGroup();
 
-    @Parameter SlotAssigner slotAssigner;
+    @Parameter int parallelism;
 
     @Parameter(value = 1)
-    int parallelism;
-
-    @Parameter(value = 2)
     Collection<? extends SlotInfo> freeSlots;
 
-    @Parameter(value = 3)
-    JobAllocationsInformation previousAllocations;
-
-    @Parameter(value = 4)
+    @Parameter(value = 2)
     List<TaskManagerLocation> minimalTaskExecutors;
 
     @TestTemplate
     void testAssignSlots() {
+        final SlotAssigner slotAssigner = new DefaultSlotAssigner();
         final VertexInformation vertexInfo =
                 new TestVertexInformation(jobVertex.getID(), parallelism, slotSharingGroup);
         final VertexParallelism vertexParallel =
@@ -97,55 +90,26 @@ class SlotAssignerTest {
                         singletonMap(vertexInfo.getJobVertexID(), vertexInfo.getParallelism()));
         final JobInformation jobInformation = new TestJobInformation(singletonList(vertexInfo));
         final Set<TaskManagerLocation> keptTaskExecutors =
-                slotAssigner
-                        .assignSlots(jobInformation, freeSlots, vertexParallel, previousAllocations)
-                        .stream()
+                slotAssigner.assignSlots(jobInformation, freeSlots, vertexParallel, null).stream()
                         .map(assignment -> assignment.getSlotInfo().getTaskManagerLocation())
                         .collect(Collectors.toSet());
         assertThat(minimalTaskExecutors).containsExactlyInAnyOrderElementsOf(keptTaskExecutors);
     }
 
-    @Parameters(
-            name =
-                    "slotAssigner={0}, parallelism={1}, freeSlots={2}, previousAllocations={3}, minimalTaskExecutors={4}")
+    @Parameters(name = "parallelism={0}, freeSlots={1}, minimalTaskExecutors={2}")
     private static Collection<Object[]> getTestingParameters() {
         return Arrays.asList(
                 new Object[] {
-                    new DefaultSlotAssigner(),
                     4,
                     Arrays.asList(slot1OfTml1, slot2OfTml1, slot1OfTml2, slot2OfTml3),
-                    null,
                     Arrays.asList(tml1, tml2, tml3)
                 },
-                new Object[] {new DefaultSlotAssigner(), 2, allSlots, null, singletonList(tml3)},
+                new Object[] {2, allSlots, singletonList(tml3)},
                 new Object[] {
-                    new DefaultSlotAssigner(),
                     3,
                     Arrays.asList(slot1OfTml1, slot1OfTml2, slot2OfTml2, slot3OfTml2),
-                    null,
                     Arrays.asList(tml1, tml2)
                 },
-                new Object[] {
-                    new DefaultSlotAssigner(),
-                    7,
-                    allSlots,
-                    createPreviousAllocations(createVertexAllocationInfo(slot1OfTml2, 512)),
-                    Arrays.asList(tml1, tml2, tml3)
-                });
-    }
-
-    private static VertexAllocationInformation createVertexAllocationInfo(
-            SlotInfo slot, long stateSizeInBytes) {
-        return new VertexAllocationInformation(
-                slot.getAllocationId(),
-                jobVertex.getID(),
-                new KeyGroupRange(0, 10),
-                stateSizeInBytes);
-    }
-
-    private static JobAllocationsInformation createPreviousAllocations(
-            VertexAllocationInformation... verticesAllocations) {
-        return new JobAllocationsInformation(
-                singletonMap(jobVertex.getID(), Arrays.asList(verticesAllocations)));
+                new Object[] {7, allSlots, Arrays.asList(tml1, tml2, tml3)});
     }
 }

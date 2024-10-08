@@ -64,9 +64,7 @@ public class DefaultSlotAssigner implements SlotAssigner {
                     getSlotsPerTaskExecutor(freeSlots);
             pickedSlots =
                     pickSlotsInMinimalTaskExecutors(
-                            slotsPerTaskExecutor,
-                            allExecutionSlotSharingGroups.size(),
-                            getSortedTaskExecutors(slotsPerTaskExecutor));
+                            slotsPerTaskExecutor, allExecutionSlotSharingGroups.size());
         }
 
         Iterator<? extends SlotInfo> iterator = pickedSlots.iterator();
@@ -87,7 +85,7 @@ public class DefaultSlotAssigner implements SlotAssigner {
             Map<TaskManagerLocation, ? extends Set<? extends SlotInfo>> slotsPerTaskExecutor) {
         final Comparator<TaskManagerLocation> taskExecutorComparator =
                 Comparator.comparingInt(tml -> slotsPerTaskExecutor.get(tml).size());
-        return sortTaskExecutors(slotsPerTaskExecutor.keySet(), taskExecutorComparator);
+        return slotsPerTaskExecutor.keySet().stream().sorted(taskExecutorComparator).iterator();
     }
 
     /**
@@ -99,28 +97,15 @@ public class DefaultSlotAssigner implements SlotAssigner {
      */
     private Collection<? extends SlotInfo> pickSlotsInMinimalTaskExecutors(
             Map<TaskManagerLocation, ? extends Set<? extends SlotInfo>> slotsByTaskExecutor,
-            int requestedGroups,
-            Iterator<TaskManagerLocation> sortedTaskExecutors) {
+            int requestedGroups) {
         final List<SlotInfo> pickedSlots = new ArrayList<>();
+        final Iterator<TaskManagerLocation> sortedTaskExecutors =
+                getSortedTaskExecutors(slotsByTaskExecutor);
         while (pickedSlots.size() < requestedGroups) {
             Set<? extends SlotInfo> slotInfos = slotsByTaskExecutor.get(sortedTaskExecutors.next());
             pickedSlots.addAll(slotInfos);
         }
         return pickedSlots;
-    }
-
-    /**
-     * Sort the task executors with the order that aims to priority assigning requested groups on
-     * it.
-     *
-     * @param taskManagerLocations task executors to sort.
-     * @param taskExecutorComparator the comparator to compare the target task executors.
-     * @return The sorted task executors list with the specified order by the comparator.
-     */
-    static Iterator<TaskManagerLocation> sortTaskExecutors(
-            Collection<TaskManagerLocation> taskManagerLocations,
-            Comparator<TaskManagerLocation> taskExecutorComparator) {
-        return taskManagerLocations.stream().sorted(taskExecutorComparator).iterator();
     }
 
     static Map<TaskManagerLocation, ? extends Set<? extends SlotInfo>> getSlotsPerTaskExecutor(
