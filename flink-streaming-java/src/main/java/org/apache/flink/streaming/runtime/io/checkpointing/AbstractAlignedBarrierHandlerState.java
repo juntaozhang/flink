@@ -22,12 +22,16 @@ import org.apache.flink.runtime.checkpoint.CheckpointException;
 import org.apache.flink.runtime.checkpoint.channel.InputChannelInfo;
 import org.apache.flink.runtime.io.network.api.CheckpointBarrier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 import static org.apache.flink.util.Preconditions.checkState;
 
 /** Actions to be taken when processing aligned checkpoints. */
 abstract class AbstractAlignedBarrierHandlerState implements BarrierHandlerState {
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected final ChannelState state;
 
@@ -62,6 +66,7 @@ abstract class AbstractAlignedBarrierHandlerState implements BarrierHandlerState
             state.blockChannel(channelInfo);
         }
 
+        LOG.info("Received all?[{}] barriers for checkpoint {}", controller.allBarriersReceived(), checkpointBarrier.getId());
         if (controller.allBarriersReceived()) {
             return triggerGlobalCheckpoint(controller, checkpointBarrier);
         }

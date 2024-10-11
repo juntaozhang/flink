@@ -777,6 +777,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
             LOG.debug("Restoring during invoke will be called.");
             restoreInternal();
         }
+        LOG.info("Starting task {}", getName());
 
         // final check to exit early before starting to run
         ensureNotCanceled();

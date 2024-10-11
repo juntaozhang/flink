@@ -381,8 +381,8 @@ public class RemoteInputChannel extends InputChannel {
      */
     @Override
     public void notifyBufferAvailable(int numAvailableBuffers) throws IOException {
-        if (numAvailableBuffers > 0 && unannouncedCredit.getAndAdd(numAvailableBuffers) == 0) {
-            notifyCreditAvailable();
+        if (numAvailableBuffers > 0 && unannouncedCredit.getAndAdd(numAvailableBuffers) == 0) {// 用于跟踪尚未通知上游的可用缓冲区数量，AddCreditMessage 中build中会reset
+            notifyCreditAvailable();// unannouncedCredit get==0表明期间灭有通知过上游，所以需要通知，add之后不为0，表示正在告知，通知后unannouncedCredit会被reset为0
         }
     }
 
@@ -511,7 +511,7 @@ public class RemoteInputChannel extends InputChannel {
      * @param backlog The number of unsent buffers in the producer's sub partition.
      */
     public void onSenderBacklog(int backlog) throws IOException {
-        notifyBufferAvailable(bufferManager.requestFloatingBuffers(backlog + initialCredit));
+        notifyBufferAvailable(bufferManager.requestFloatingBuffers(backlog + initialCredit));// `initialCredit` 可以理解为多申请的缓冲区，作为冗余
     }
 
     /**
@@ -581,7 +581,7 @@ public class RemoteInputChannel extends InputChannel {
                 notifyPriorityEvent(sequenceNumber);
             }
             if (wasEmpty) {
-                notifyChannelNonEmpty();
+                notifyChannelNonEmpty();// non-empty说明已经通知过了
             }
 
             if (backlog >= 0) {

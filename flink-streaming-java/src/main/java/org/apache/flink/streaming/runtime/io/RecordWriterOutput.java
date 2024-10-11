@@ -25,6 +25,7 @@ import org.apache.flink.runtime.event.AbstractEvent;
 import org.apache.flink.runtime.io.network.api.CheckpointBarrier;
 import org.apache.flink.runtime.io.network.api.writer.RecordWriter;
 import org.apache.flink.runtime.plugable.SerializationDelegate;
+import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.api.operators.Output;
 import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.runtime.metrics.WatermarkGauge;
@@ -36,6 +37,9 @@ import org.apache.flink.streaming.runtime.tasks.WatermarkGaugeExposingOutput;
 import org.apache.flink.streaming.runtime.watermarkstatus.WatermarkStatus;
 import org.apache.flink.util.OutputTag;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
@@ -44,6 +48,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 /** Implementation of {@link Output} that sends data using a {@link RecordWriter}. */
 @Internal
 public class RecordWriterOutput<OUT> implements WatermarkGaugeExposingOutput<StreamRecord<OUT>> {
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private RecordWriter<SerializationDelegate<StreamElement>> recordWriter;
 
@@ -87,7 +92,7 @@ public class RecordWriterOutput<OUT> implements WatermarkGaugeExposingOutput<Str
             // we are not responsible for emitting to the main output.
             return;
         }
-
+        LOG.info("collect: {}", record);
         pushToRecordWriter(record);
     }
 
@@ -113,7 +118,7 @@ public class RecordWriterOutput<OUT> implements WatermarkGaugeExposingOutput<Str
         if (announcedStatus.isIdle()) {
             return;
         }
-
+        LOG.info("emitWatermark: {}", mark);
         watermarkGauge.setCurrentWatermark(mark.getTimestamp());
         serializationDelegate.setInstance(mark);
 
@@ -127,6 +132,7 @@ public class RecordWriterOutput<OUT> implements WatermarkGaugeExposingOutput<Str
     @Override
     public void emitWatermarkStatus(WatermarkStatus watermarkStatus) {
         if (!announcedStatus.equals(watermarkStatus)) {
+            LOG.info("emitWatermarkStatus: {}", watermarkStatus);
             announcedStatus = watermarkStatus;
             serializationDelegate.setInstance(watermarkStatus);
             try {

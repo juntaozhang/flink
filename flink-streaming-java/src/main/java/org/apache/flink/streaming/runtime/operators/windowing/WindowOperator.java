@@ -283,6 +283,7 @@ public class WindowOperator<K, IN, ACC, OUT, W extends Window>
         final Collection<W> elementWindows =
                 windowAssigner.assignWindows(
                         element.getValue(), element.getTimestamp(), windowAssignerContext);
+        log.info("processElement==>element: {}, elementWindows:{}", element, elementWindows);
 
         // if element is handled by none of assigned elementWindows
         boolean isSkippedElement = true;
@@ -396,6 +397,7 @@ public class WindowOperator<K, IN, ACC, OUT, W extends Window>
 
                 // drop if the window is already late
                 if (isWindowLate(window)) {
+                    LOG.info("processElement==>window is late, window:{}", window);
                     continue;
                 }
                 isSkippedElement = false;

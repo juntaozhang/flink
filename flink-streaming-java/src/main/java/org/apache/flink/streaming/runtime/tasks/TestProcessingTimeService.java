@@ -65,7 +65,7 @@ public class TestProcessingTimeService implements TimerService {
 
     public void setCurrentTime(long timestamp) throws Exception {
         this.currentTime = timestamp;
-
+        System.out.printf("setCurrentTime=> timestamp:%s%n", timestamp);
         if (!isQuiesced) {
             while (!priorityQueue.isEmpty() && currentTime >= priorityQueue.peek().f0) {
                 Tuple2<Long, CallbackTask> entry = priorityQueue.poll();

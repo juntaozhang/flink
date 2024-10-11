@@ -321,7 +321,7 @@ class SubtaskCheckpointCoordinatorImpl implements SubtaskCheckpointCoordinator {
         operatorChain.prepareSnapshotPreBarrier(metadata.getCheckpointId());
 
         // Step (2): Send the checkpoint barrier downstream
-        LOG.debug(
+        LOG.info(
                 "Task {} broadcastEvent at {}, triggerTime {}, passed time {}",
                 taskName,
                 System.currentTimeMillis(),

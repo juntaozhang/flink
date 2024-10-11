@@ -847,6 +847,7 @@ public class AbstractStreamOperatorTestHarness<OUT> implements AutoCloseable {
             } else {
                 outputList.add(new StreamRecord<>(outputSerializer.copy(element.getValue())));
             }
+            System.out.println(element);
         }
 
         @Override

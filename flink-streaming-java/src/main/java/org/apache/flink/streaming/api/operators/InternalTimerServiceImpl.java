@@ -223,6 +223,7 @@ public class InternalTimerServiceImpl<K, N> implements InternalTimerService<N> {
                 if (nextTimer != null) {
                     nextTimer.cancel(false);
                 }
+                System.out.printf("register=> timestamp:%s window:%s%n", time, namespace);
                 nextTimer = processingTimeService.registerTimer(time, this::onProcessingTime);
             }
         }

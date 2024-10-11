@@ -53,6 +53,7 @@ public class ContinuousProcessingTimeTrigger<W extends Window> extends Trigger<O
         ReducingState<Long> fireTimestampState = ctx.getPartitionedState(stateDesc);
 
         timestamp = ctx.getCurrentProcessingTime();
+        System.out.printf("onElement=> element:%s timestamp:%s window:%s%n", element, timestamp, window);
 
         if (fireTimestampState.get() == null) {
             registerNextFireTimestamp(
@@ -74,8 +75,10 @@ public class ContinuousProcessingTimeTrigger<W extends Window> extends Trigger<O
         if (fireTimestampState.get().equals(time)) {
             fireTimestampState.clear();
             registerNextFireTimestamp(time, window, ctx, fireTimestampState);
+            System.out.printf("FIRE=> timestamp:%s window:%s%n", time, window);
             return TriggerResult.FIRE;
         }
+        System.out.printf("CONTINUE=> timestamp:%s window:%s%n", time, window);
         return TriggerResult.CONTINUE;
     }
 

@@ -57,7 +57,7 @@ public abstract class IndexedInputGate extends InputGate implements Checkpointab
 
     @Override
     public void blockConsumption(InputChannelInfo channelInfo) {
-        // Unused. Network stack is blocking consumption automatically by revoking credits.
+        // Unused. Network stack is blocking consumption automatically by revoking credits. 因为网络栈会自动通过撤销信用来阻止消费
     }
 
     @Override

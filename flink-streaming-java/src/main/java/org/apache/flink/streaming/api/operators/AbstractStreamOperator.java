@@ -95,6 +95,7 @@ public abstract class AbstractStreamOperator<OUT>
 
     /** The logger used by the operator class and its subclasses. */
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractStreamOperator.class);
+    public final Logger log = LoggerFactory.getLogger(getClass());
 
     // ----------- configuration properties -------------
 
@@ -598,6 +599,7 @@ public abstract class AbstractStreamOperator<OUT>
     }
 
     public void processWatermark(Watermark mark) throws Exception {
+        log.info("processWatermark {}", mark);
         if (timeServiceManager != null) {
             timeServiceManager.advanceWatermark(mark);
         }

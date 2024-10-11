@@ -99,7 +99,7 @@ public class PipelinedSubpartition extends ResultSubpartition
     private boolean isFinished;
 
     @GuardedBy("buffers")
-    private boolean flushRequested;
+    private boolean flushRequested; // 有数据可用需要通知readView
 
     /** Flag indicating whether the subpartition has been released. */
     volatile boolean isReleased;
@@ -207,8 +207,14 @@ public class PipelinedSubpartition extends ResultSubpartition
             newBufferSize = bufferSize;
         }
 
+        LOG.info("Buffers size {}, record buffers size {}.",
+                buffers.size(),
+                buffers.stream().filter(l ->l.getBufferConsumer().isBuffer()).count()
+        );
+
         notifyPriorityEvent(prioritySequenceNumber);
         if (notifyDataAvailable) {
+            LOG.info("Added buffer to subpartition {}, and notifyDataAvailable.", this);
             notifyDataAvailable();
         }
 
@@ -489,7 +495,7 @@ public class PipelinedSubpartition extends ResultSubpartition
 
                 if (buffers.size() == 1) {
                     // turn off flushRequested flag if we drained all of the available data
-                    flushRequested = false;
+                    flushRequested = false;// 如果这个buffer没有完成，没有数据可读，不会通知readView。如果完成了，下面会poll，buffer就会被移除，所以也不会再有数据可读
                 }
 
                 if (bufferConsumer.isFinished()) {
@@ -689,6 +695,7 @@ public class PipelinedSubpartition extends ResultSubpartition
             flushRequested = buffers.size() > 1 || isDataAvailableInUnfinishedBuffer;
         }
         if (notifyDataAvailable) {
+            LOG.info("Flushed subpartition {}, and notifyDataAvailable.", this);
             notifyDataAvailable();
         }
     }
@@ -718,8 +725,10 @@ public class PipelinedSubpartition extends ResultSubpartition
     @GuardedBy("buffers")
     private void decreaseBuffersInBacklogUnsafe(boolean isBuffer) {
         assert Thread.holdsLock(buffers);
+
         if (isBuffer) {
             buffersInBacklog--;
+            LOG.info("Decrease buffersInBacklog, current buffersInBacklog={}", buffersInBacklog);
         }
     }
 
@@ -733,6 +742,7 @@ public class PipelinedSubpartition extends ResultSubpartition
 
         if (buffer != null && buffer.isBuffer()) {
             buffersInBacklog++;
+            LOG.info("Increase buffersInBacklog, current buffersInBacklog={}", buffersInBacklog);
         }
     }
 
@@ -745,9 +755,11 @@ public class PipelinedSubpartition extends ResultSubpartition
 
         if (flushRequested
                 || isFinished
+                // 最后一个如果是其他事件，应该不存在未完成这样状态，事件都是立刻写完的
                 || !checkNotNull(buffers.peekLast()).getBufferConsumer().isBuffer()) {
             return buffersInBacklog;
         } else {
+            // 假定最后一个buffer是未完成的buffer
             return Math.max(buffersInBacklog - 1, 0);
         }
     }

@@ -156,9 +156,9 @@ public abstract class BufferWritingResultPartition extends ResultPartition {
         BufferBuilder buffer = appendUnicastDataForNewRecord(record, targetSubpartition);
 
         while (record.hasRemaining()) {
-            // full buffer, partial record
+            // full buffer, partial record 这里是一个buffer写满了，但是record还有剩余
             finishUnicastBufferBuilder(targetSubpartition);
-            buffer = appendUnicastDataForRecordContinuation(record, targetSubpartition);
+            buffer = appendUnicastDataForRecordContinuation(record, targetSubpartition);//创建一个新的buffer(状态是未完成)
         }
 
         if (buffer.isFull()) {
@@ -191,6 +191,7 @@ public abstract class BufferWritingResultPartition extends ResultPartition {
 
     @Override
     public void broadcastEvent(AbstractEvent event, boolean isPriorityEvent) throws IOException {
+        LOG.info("broadcastEvent: {}", event);
         checkInProduceState();
         finishBroadcastBufferBuilder();
         finishUnicastBufferBuilders();

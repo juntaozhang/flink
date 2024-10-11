@@ -75,6 +75,7 @@ public class TestInternalTimerService<K, N> implements InternalTimerService<N> {
         if (processingTimeTimers.add(timer)) {
             processingTimeTimersQueue.add(timer);
         }
+        System.out.printf("registerProcessingTimeTimer=> timer:%s, size:%s%n", timer, processingTimeTimersQueue.size());
     }
 
     @Override

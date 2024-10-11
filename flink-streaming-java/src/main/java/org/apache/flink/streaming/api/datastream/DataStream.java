@@ -1196,7 +1196,7 @@ public class DataStream<T> {
 
         OneInputTransformation<T, R> resultTransform =
                 new OneInputTransformation<>(
-                        this.transformation,
+                        this.getTransformation(),
                         operatorName,
                         operatorFactory,
                         outTypeInfo,
