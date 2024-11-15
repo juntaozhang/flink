@@ -34,7 +34,8 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Runner for the {@link org.apache.flink.runtime.dispatcher.Dispatcher} which is responsible for
- * the leader election.
+ * the leader election. 负责启动和管理Dispatcher组件，并支持对Dispatcher组件的Leader选举。
+ * 当Dispatcher集群组件出现异常并停止时，会通过DispatcherRunner重新选择和启动新的Dispatcher服务，从而保证Dispatcher组件的高可用。
  */
 public final class DefaultDispatcherRunner implements DispatcherRunner, LeaderContender {
 

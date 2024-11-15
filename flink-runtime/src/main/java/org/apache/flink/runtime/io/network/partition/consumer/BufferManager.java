@@ -182,9 +182,9 @@ public class BufferManager implements BufferListener, BufferRecycler {
 
         int numRequestedBuffers = 0;
         while (bufferQueue.getAvailableBufferSize() < numRequiredBuffers
-                && !isWaitingForFloatingBuffers) {// 当前没有等待的浮动缓冲区
+                && !isWaitingForFloatingBuffers) { // 当前没有等待的浮动缓冲区
             BufferPool bufferPool = inputChannel.inputGate.getBufferPool();
-            Buffer buffer = bufferPool.requestBuffer();// 请求一个浮动缓冲区
+            Buffer buffer = bufferPool.requestBuffer(); // 请求一个浮动缓冲区
             if (buffer != null) {
                 bufferQueue.addFloatingBuffer(buffer);
                 numRequestedBuffers++;

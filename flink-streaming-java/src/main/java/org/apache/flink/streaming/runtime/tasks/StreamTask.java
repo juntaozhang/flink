@@ -1120,6 +1120,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
         checkForcedFullSnapshotSupport(checkpointOptions);
 
         CompletableFuture<Boolean> result = new CompletableFuture<>();
+        LOG.info("Submit checkpoint {} for task {}.", checkpointMetaData, getName());
         mainMailboxExecutor.execute(
                 () -> {
                     try {
@@ -1278,7 +1279,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
             throws Exception {
 
         final SnapshotType checkpointType = checkpointOptions.getCheckpointType();
-        LOG.debug(
+        LOG.info(
                 "Starting checkpoint {} {} on task {}",
                 checkpointMetaData.getCheckpointId(),
                 checkpointType,

@@ -109,7 +109,7 @@ final class AsyncCheckpointRunnable implements Runnable, Closeable {
     public void run() {
         final long asyncStartNanos = System.nanoTime();
         final long asyncStartDelayMillis = (asyncStartNanos - asyncConstructionNanos) / 1_000_000L;
-        LOG.debug(
+        LOG.info(
                 "{} - started executing asynchronous part of checkpoint {}. Asynchronous start delay: {} ms",
                 taskName,
                 checkpointMetaData.getCheckpointId(),
@@ -144,7 +144,10 @@ final class AsyncCheckpointRunnable implements Runnable, Closeable {
                         taskName,
                         checkpointMetaData.getCheckpointId());
             }
-
+            LOG.info(
+                    "{} - finished asynchronous part of checkpoint {}.",
+                    taskName,
+                    checkpointMetaData.getCheckpointId());
             finishedFuture.complete(null);
         } catch (Exception e) {
             LOG.info(

@@ -77,7 +77,8 @@ public class ResourceManagerRuntimeServices {
             SlotManagerMetricGroup slotManagerMetricGroup) {
         final SlotManagerConfiguration slotManagerConfiguration =
                 configuration.getSlotManagerConfiguration();
-        if (configuration.isEnableFineGrainedResourceManagement()) {
+        if (configuration
+                .isEnableFineGrainedResourceManagement()) { // 当集群运行多个作业，且这些作业的资源需求随时间变化时。当需要更高效地利用集群资源，减少空闲资源时。
             return new FineGrainedSlotManager(
                     scheduledExecutor,
                     slotManagerConfiguration,

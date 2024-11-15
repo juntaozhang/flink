@@ -182,7 +182,7 @@ public class ChannelStateWriterImpl implements ChannelStateWriter {
             InputChannelInfo info,
             int startSeqNum,
             CloseableIterator<Buffer> iterator) {
-        LOG.trace(
+        LOG.info(
                 "{} adding input data, checkpoint {}, channel: {}, startSeqNum: {}",
                 taskName,
                 checkpointId,

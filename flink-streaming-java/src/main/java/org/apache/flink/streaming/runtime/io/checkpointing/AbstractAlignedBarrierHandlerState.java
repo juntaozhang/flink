@@ -66,7 +66,10 @@ abstract class AbstractAlignedBarrierHandlerState implements BarrierHandlerState
             state.blockChannel(channelInfo);
         }
 
-        LOG.info("Received all?[{}] barriers for checkpoint {}", controller.allBarriersReceived(), checkpointBarrier.getId());
+        LOG.info(
+                "Received all?[{}] barriers for checkpoint {}",
+                controller.allBarriersReceived(),
+                checkpointBarrier.getId());
         if (controller.allBarriersReceived()) {
             return triggerGlobalCheckpoint(controller, checkpointBarrier);
         }

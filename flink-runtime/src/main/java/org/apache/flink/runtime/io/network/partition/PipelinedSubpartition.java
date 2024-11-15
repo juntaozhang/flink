@@ -214,7 +214,9 @@ public class PipelinedSubpartition extends ResultSubpartition
 
         notifyPriorityEvent(prioritySequenceNumber);
         if (notifyDataAvailable) {
-            LOG.info("Added buffer to subpartition {}, and notifyDataAvailable.", this);
+            LOG.info(
+                    "Added buffer to subpartition {}, and notifyDataAvailable.",
+                    getSubPartitionIndex());
             notifyDataAvailable();
         }
 
@@ -256,6 +258,11 @@ public class PipelinedSubpartition extends ResultSubpartition
                 }
             }
             if (!inflightBuffers.isEmpty()) {
+                LOG.info(
+                        "Add inflight buffers to subpartition {} for checkpoint {}, inflightBuffers size {}.",
+                        getSubPartitionIndex(),
+                        barrier.getId(),
+                        inflightBuffers.size());
                 channelStateWriter.addOutputData(
                         barrier.getId(),
                         subpartitionInfo,
@@ -495,7 +502,8 @@ public class PipelinedSubpartition extends ResultSubpartition
 
                 if (buffers.size() == 1) {
                     // turn off flushRequested flag if we drained all of the available data
-                    flushRequested = false;// 如果这个buffer没有完成，没有数据可读，不会通知readView。如果完成了，下面会poll，buffer就会被移除，所以也不会再有数据可读
+                    // 如果这个buffer没有完成，没有数据可读，不会通知readView。如果完成了，下面会poll，buffer就会被移除，所以也不会再有数据可读
+                    flushRequested = false;
                 }
 
                 if (bufferConsumer.isFinished()) {

@@ -158,7 +158,8 @@ public abstract class BufferWritingResultPartition extends ResultPartition {
         while (record.hasRemaining()) {
             // full buffer, partial record 这里是一个buffer写满了，但是record还有剩余
             finishUnicastBufferBuilder(targetSubpartition);
-            buffer = appendUnicastDataForRecordContinuation(record, targetSubpartition);//创建一个新的buffer(状态是未完成)
+            // 创建一个新的buffer(状态是未完成)
+            buffer = appendUnicastDataForRecordContinuation(record, targetSubpartition);
         }
 
         if (buffer.isFull()) {

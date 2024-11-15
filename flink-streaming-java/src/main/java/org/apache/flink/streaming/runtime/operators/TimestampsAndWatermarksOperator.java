@@ -112,6 +112,7 @@ public class TimestampsAndWatermarksOperator<T> extends AbstractStreamOperator<T
 
     @Override
     public void snapshotState(StateSnapshotContext context) throws Exception {
+        LOG.info("do operator snapshotState");
         super.snapshotState(context);
         wmOutput.snapshotState(context);
     }

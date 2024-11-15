@@ -290,16 +290,20 @@ public class DeclarativeSlotPoolService implements SlotPoolService {
         assertHasBeenStarted();
 
         resourceRequirementServiceConnectionManager.connect(
-                resourceRequirements ->
-                        resourceManagerGateway.declareRequiredResources(
-                                jobMasterId, resourceRequirements, rpcTimeout));
-
+                resourceRequirements -> {
+                    log.info(
+                            "Connected to ResourceManager {}, declaring resource requirements {}.",
+                            resourceManagerGateway.getAddress(),
+                            resourceRequirements);
+                    return resourceManagerGateway.declareRequiredResources(
+                            jobMasterId, resourceRequirements, rpcTimeout);
+                });
         declareResourceRequirements(declarativeSlotPool.getResourceRequirements());
     }
 
     private void declareResourceRequirements(Collection<ResourceRequirement> resourceRequirements) {
         assertHasBeenStarted();
-
+        log.info("Declaring resource requirements {}.", resourceRequirements);
         resourceRequirementServiceConnectionManager.declareResourceRequirements(
                 ResourceRequirements.create(jobId, jobManagerAddress, resourceRequirements));
     }

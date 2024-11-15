@@ -309,7 +309,7 @@ public class IntervalJoinOperator<K, T1, T2, OUT>
         long timerTimestamp = timer.getTimestamp();
         String namespace = timer.getNamespace();
 
-        logger.trace("onEventTime @ {}", timerTimestamp);
+        logger.info("onEventTime namespace {} @ {}", namespace, timerTimestamp);
 
         switch (namespace) {
             case CLEANUP_NAMESPACE_LEFT:

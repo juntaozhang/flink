@@ -447,7 +447,7 @@ public class JobManagerOptions {
         @Deprecated
         Ng,
         Default,
-        Adaptive,
+        Adaptive, // 自适应调度器，适用于需要动态调整资源的情况
         AdaptiveBatch
     }
 

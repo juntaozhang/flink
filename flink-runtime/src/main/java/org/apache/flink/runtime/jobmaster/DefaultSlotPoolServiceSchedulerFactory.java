@@ -169,7 +169,7 @@ public final class DefaultSlotPoolServiceSchedulerFactory
                     "Only adaptive batch scheduler supports setting "
                             + JobManagerOptions.HYBRID_PARTITION_DATA_CONSUME_CONSTRAINT.key());
         }
-
+        LOG.info("Using {} scheduler for job type {}.", schedulerType, jobType);
         switch (schedulerType) {
             case Default:
                 schedulerNGFactory = new DefaultSchedulerFactory();

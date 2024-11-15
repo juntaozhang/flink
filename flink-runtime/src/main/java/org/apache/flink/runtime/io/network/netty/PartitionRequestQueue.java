@@ -104,10 +104,10 @@ class PartitionRequestQueue extends ChannelInboundHandlerAdapter {
 
         ResultSubpartitionView.AvailabilityWithBacklog availabilityWithBacklog =
                 reader.getAvailabilityAndBacklog();
-        if (!availabilityWithBacklog.isAvailable()) {// 表示数据可用 或者 下游有buffer
+        if (!availabilityWithBacklog.isAvailable()) { // 表示数据可用 或者 下游有buffer
             int backlog = availabilityWithBacklog.getBacklog();
-            if (backlog > 0 && reader.needAnnounceBacklog()) {// 表示有数据可用，但是下游没有buffer
-                announceBacklog(reader, backlog); //告诉下游背压数量
+            if (backlog > 0 && reader.needAnnounceBacklog()) { // 表示有数据可用，但是下游没有buffer
+                announceBacklog(reader, backlog); // 告诉下游背压数量
             }
             return;
         }

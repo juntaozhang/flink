@@ -724,7 +724,7 @@ class SubtaskCheckpointCoordinatorImpl implements SubtaskCheckpointCoordinator {
             checkpointStorage.clearCacheFor(checkpointId);
         }
 
-        LOG.debug(
+        LOG.info(
                 "{} - finished synchronous part of checkpoint {}. Alignment duration: {} ms, snapshot duration {} ms, is unaligned checkpoint : {}",
                 taskName,
                 checkpointId,

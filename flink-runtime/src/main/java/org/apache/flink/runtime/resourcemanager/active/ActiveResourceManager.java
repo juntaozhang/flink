@@ -231,7 +231,7 @@ public class ActiveResourceManager<WorkerType extends ResourceIDRetrievable>
     @VisibleForTesting
     public void declareResourceNeeded(Collection<ResourceDeclaration> resourceDeclarations) {
         this.resourceDeclarations = Collections.unmodifiableCollection(resourceDeclarations);
-        log.debug("Update resource declarations to {}.", resourceDeclarations);
+        log.info("Update resource declarations to {}.", resourceDeclarations);
 
         checkResourceDeclarations();
     }

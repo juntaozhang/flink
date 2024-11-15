@@ -199,14 +199,14 @@ public class UnalignedCheckpointsTest {
         BufferOrEvent[] sequence1 =
                 addSequence(
                         inputGate,
-                        createBuffer(0),
-                        createBuffer(2),
-                        createBuffer(0),
-                        createBarrier(1, 1),
-                        createBarrier(1, 2),
-                        createBuffer(2),
-                        createBuffer(1),
-                        createBuffer(0), // last buffer = in-flight
+                        createBuffer(0), // 0
+                        createBuffer(2), // 1
+                        createBuffer(0), // 2
+                        createBarrier(1, 1), // 3  channel 1 -> BARRIER_RECEIVED
+                        createBarrier(1, 2), // 4  channel 2 -> BARRIER_RECEIVED
+                        createBuffer(2), // 5
+                        createBuffer(1), // 6
+                        createBuffer(0), // 7 last buffer = in-flight
                         createBarrier(1, 0));
 
         // checkpoint 1 triggered unaligned
@@ -258,20 +258,21 @@ public class UnalignedCheckpointsTest {
         BufferOrEvent[] sequence5 =
                 addSequence(
                         inputGate,
-                        createBuffer(0),
-                        createBuffer(2),
-                        createBuffer(0),
-                        createBarrier(5, 1),
-                        createBuffer(2),
-                        createBuffer(0),
-                        createBuffer(2),
-                        createBuffer(1),
-                        createBarrier(5, 2),
-                        createBuffer(1),
-                        createBuffer(0),
-                        createBuffer(2),
-                        createBuffer(1),
-                        createBarrier(5, 0));
+                        createBuffer(0), // 0
+                        createBuffer(2), // 1
+                        createBuffer(0), // 2
+                        createBarrier(5, 1), // 3
+                        createBuffer(2), // 4 (in-flight)
+                        createBuffer(0), // 5 (in-flight)
+                        createBuffer(2), // 6 (in-flight)
+                        createBuffer(1), // 7
+                        createBarrier(5, 2), // 8
+                        createBuffer(1), // 9 这里不可能出现9 11 12 这样的数据，因为barrier发出之后该通道就会block
+                        createBuffer(0), // 10 (in-flight)
+                        createBuffer(2), // 11
+                        createBuffer(1), // 12
+                        createBarrier(5, 0) // 13
+                        );
 
         assertOutput(sequence5);
         assertEquals(5L, channelStateWriter.getLastStartedCheckpointId());
@@ -977,6 +978,7 @@ public class UnalignedCheckpointsTest {
             int[] sequenceNumbers,
             BufferOrEvent... sequence)
             throws Exception {
+        int i = 0;
         for (BufferOrEvent bufferOrEvent : sequence) {
             if (bufferOrEvent.isEvent()) {
                 bufferOrEvent =
@@ -988,6 +990,7 @@ public class UnalignedCheckpointsTest {
                                 bufferOrEvent.moreAvailable(),
                                 bufferOrEvent.morePriorityEvents());
             }
+            System.out.println(i++);
             ((RemoteInputChannel)
                             inputGate.getChannel(
                                     bufferOrEvent.getChannelInfo().getInputChannelIdx()))

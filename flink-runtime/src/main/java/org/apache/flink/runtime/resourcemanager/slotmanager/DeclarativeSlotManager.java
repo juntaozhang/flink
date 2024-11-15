@@ -349,7 +349,10 @@ public class DeclarativeSlotManager implements SlotManager {
                         taskExecutorConnection.getResourceID());
                 return RegistrationResult.REJECTED;
             }
-
+            LOG.info(
+                    "Slot report for task executor {} is {}",
+                    taskExecutorConnection.getResourceID(),
+                    initialSlotReport);
             // register the new slots
             for (SlotStatus slotStatus : initialSlotReport) {
                 slotTracker.addSlot(

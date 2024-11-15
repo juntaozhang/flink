@@ -90,6 +90,11 @@ public final class ChannelStatePersister {
             checkpointStatus = CheckpointStatus.BARRIER_PENDING;
             lastSeenBarrier = barrierId;
         }
+        LOG.info(
+                "startPersisting {}, inflightBuffers buffer size {}, checkpointStatus {}",
+                barrierId,
+                knownBuffers.size(),
+                checkpointStatus);
         if (knownBuffers.size() > 0) {
             channelStateWriter.addInputData(
                     barrierId,
@@ -109,6 +114,10 @@ public final class ChannelStatePersister {
 
     protected void maybePersist(Buffer buffer) {
         if (checkpointStatus == CheckpointStatus.BARRIER_PENDING && buffer.isBuffer()) {
+            LOG.info(
+                    "maybePersisting buffer, lastSeenBarrier {}, checkpointStatus {}",
+                    lastSeenBarrier,
+                    checkpointStatus);
             channelStateWriter.addInputData(
                     lastSeenBarrier,
                     channelInfo,
@@ -146,15 +155,15 @@ public final class ChannelStatePersister {
     }
 
     private void logEvent(String event, long barrierId) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                    "{} {}, lastSeenBarrier = {} ({}) @ {}",
-                    event,
-                    barrierId,
-                    lastSeenBarrier,
-                    checkpointStatus,
-                    channelInfo);
-        }
+        //        if (LOG.isDebugEnabled()) {
+        LOG.info(
+                "{} {}, lastSeenBarrier = {} ({}) @ {}",
+                event,
+                barrierId,
+                lastSeenBarrier,
+                checkpointStatus,
+                channelInfo);
+        //        }
     }
 
     /**

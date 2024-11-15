@@ -357,7 +357,8 @@ public class MailboxProcessor implements Closeable {
     private boolean processMailsWhenDefaultActionUnavailable() throws Exception {
         boolean processedSomething = false;
         Optional<Mail> maybeMail;
-        while (!isDefaultActionAvailable() && isNextLoopPossible()) {
+        while (!isDefaultActionAvailable()
+                && isNextLoopPossible()) { // suspendedDefaultAction != null
             maybeMail = mailbox.tryTake(MIN_PRIORITY);
             if (!maybeMail.isPresent()) {
                 maybeMail = Optional.of(mailbox.take(MIN_PRIORITY));

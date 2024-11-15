@@ -799,6 +799,11 @@ public class CheckpointCoordinator {
                         execution.triggerSynchronousSavepoint(
                                 checkpointId, timestamp, checkpointOptions));
             } else {
+                LOG.info(
+                        "Triggering checkpoint {} @ {} for {}.",
+                        checkpointId,
+                        timestamp,
+                        execution.getVertex());
                 acks.add(execution.triggerCheckpoint(checkpointId, timestamp, checkpointOptions));
             }
         }
