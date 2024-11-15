@@ -35,9 +35,13 @@ public class Client {
 
         @Override
         public Receive createReceive() {
-            return receiveBuilder().match(Message.class, message -> {
-                log.info("receive {},", message);
-            }).build();
+            return receiveBuilder()
+                    .match(
+                            Message.class,
+                            message -> {
+                                log.info("receive {},", message);
+                            })
+                    .build();
         }
     }
 }

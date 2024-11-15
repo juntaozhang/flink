@@ -36,6 +36,7 @@ under the License.
 	<!-- Allow users to pass custom jcuda versions -->
 	<properties>
 		<jcuda.version>10.0.0</jcuda.version>
+		<akka.version>2.6.20</akka.version>
 	</properties>
 
 	<dependencies>
@@ -142,10 +143,35 @@ under the License.
 			<artifactId>guava</artifactId>
 			<version>33.2.1-jre</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-remote_${scala.binary.version}</artifactId>
+			<version>${akka.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-actor_${scala.binary.version}</artifactId>
+			<version>${akka.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-cluster_${scala.binary.version}</artifactId>
+			<version>${akka.version}</version>
+		</dependency>
     </dependencies>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>
@@ -367,6 +393,28 @@ under the License.
 							<includes>
 								<include>org/apache/flink/streaming/examples/windowing/SessionWindowing.class</include>
 								<include>org/apache/flink/streaming/examples/windowing/SessionWindowing$*.class</include>
+								<include>META-INF/LICENSE</include>
+								<include>META-INF/NOTICE</include>
+							</includes>
+						</configuration>
+					</execution>
+
+					<!-- MyTest -->
+					<execution>
+						<id>MyTest</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>MyTest</classifier>
+							<archive>
+								<manifestEntries>
+									<program-class>org.apache.flink.streaming.examples.my.windowing.WindowWatermarkExample</program-class>
+								</manifestEntries>
+							</archive>
+							<includes>
+								<include>org/apache/flink/streaming/examples/my/**</include>
 								<include>META-INF/LICENSE</include>
 								<include>META-INF/NOTICE</include>
 							</includes>

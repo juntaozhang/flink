@@ -16,27 +16,34 @@ public class Server {
         ActorSystem actorSystem = ActorSystem.create("server", config);
         ActorRef hi = actorSystem.actorOf(Props.create(HiActor.class), "hi");
         actorSystem.actorOf(Props.create(HelloActor.class), "hello");
-        ActorRef listener = actorSystem.actorOf(
-                Props.create(DeadLetterListener.class),
-                "deadLetterListener");
+        ActorRef listener =
+                actorSystem.actorOf(Props.create(DeadLetterListener.class), "deadLetterListener");
         actorSystem.eventStream().subscribe(listener, DeadLetter.class);
-//        actorSystem
-//                .actorSelection("/user/hi")
-//                .tell(new Message("hi from server"), ActorRef.noSender());
-//        hi.tell(new Message("hi from server"), ActorRef.noSender());
+        //        actorSystem
+        //                .actorSelection("/user/hi")
+        //                .tell(new Message("hi from server"), ActorRef.noSender());
+        //        hi.tell(new Message("hi from server"), ActorRef.noSender());
     }
 
     public static class HiActor extends AbstractActor {
         @Override
         public Receive createReceive() {
-            return receiveBuilder().match(Message.class, message -> {
-                        log.info("Hi Message, receive {}", message);
-                        getSender().tell(new Message("echo " + message.getMessage()), getSelf());
-                    })
-                    .match(FunctionCall.class, functionCall -> {
-                        log.info("Hi FunctionCall, receive {}", functionCall);
-                        getSender().tell(new Message("echo result"), getSelf());
-                    })
+            return receiveBuilder()
+                    .match(
+                            Message.class,
+                            message -> {
+                                log.info("Hi Message, receive {}", message);
+                                getSender()
+                                        .tell(
+                                                new Message("echo " + message.getMessage()),
+                                                getSelf());
+                            })
+                    .match(
+                            FunctionCall.class,
+                            functionCall -> {
+                                log.info("Hi FunctionCall, receive {}", functionCall);
+                                getSender().tell(new Message("echo result"), getSelf());
+                            })
                     .build();
         }
     }
@@ -45,9 +52,11 @@ public class Server {
         @Override
         public Receive createReceive() {
             return receiveBuilder()
-                    .match(DeadLetter.class, deadLetter -> {
-                        System.out.println("Received dead letter: " + deadLetter);
-                    })
+                    .match(
+                            DeadLetter.class,
+                            deadLetter -> {
+                                System.out.println("Received dead letter: " + deadLetter);
+                            })
                     .build();
         }
     }
@@ -55,9 +64,13 @@ public class Server {
     public static class HelloActor extends AbstractActor {
         @Override
         public Receive createReceive() {
-            return receiveBuilder().match(Message.class, message -> {
-                log.info("Hello Message, receive {}", message);
-            }).build();
+            return receiveBuilder()
+                    .match(
+                            Message.class,
+                            message -> {
+                                log.info("Hello Message, receive {}", message);
+                            })
+                    .build();
         }
     }
 }
