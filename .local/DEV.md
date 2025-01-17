@@ -44,3 +44,41 @@ cd ./flink/flink-dist/target/flink-1.17-SNAPSHOT-bin/flink-1.17-SNAPSHOT
     -Drestart-strategy.fixed-delay.delay=10s                             \
     local:///opt/flink/examples/streaming/MyTest.jar socket-server.default.svc.cluster.local 19998
 ```
+
+## Run Kafka example
+### Install Kafka
+```bash
+cd .local/kubernetes-application/helm/kafka
+helm install kafka bitnami/kafka -f values.yaml
+```
+### Change to kubernetes LoadBalance
+```bash
+kubectl patch svc kafka --type='json' -p '[{"op":"replace","path":"/spec/type","value":"LoadBalancer"}]'
+```
+
+### Or create by docker
+https://hub.docker.com/r/apache/kafka
+
+#### Single node
+```bash
+docker run -d -p 9092:9092 --name broker apache/kafka:3.9.0
+docker exec -u root -it broker  /bin/bash
+
+/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --topic test-input
+/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --topic test-output
+/opt/kafka/bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic test-input
+/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test-output --from-beginning
+```
+
+#### Multiple nodes
+```bash
+docker compose -p kafka -f docker-compose-kafka.yaml up -d
+docker exec -u root -it controller-1  /bin/bash
+
+/opt/kafka/bin/kafka-topics.sh --bootstrap-server broker-1:19092,broker-2:19092,broker-3:19092 --create --topic test-input2 --partitions 3
+/opt/kafka/bin/kafka-topics.sh --bootstrap-server broker-1:19092,broker-2:19092,broker-3:19092 --create --topic test-output2 --partitions 3
+/opt/kafka/bin/kafka-console-producer.sh --bootstrap-server broker-1:19092,broker-2:19092,broker-3:19092 --topic test-input
+/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server broker-1:19092,broker-2:19092,broker-3:19092 --topic test-output --from-beginning
+```
+
+
