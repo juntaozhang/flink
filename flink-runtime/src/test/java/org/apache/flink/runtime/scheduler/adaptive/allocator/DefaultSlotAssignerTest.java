@@ -58,6 +58,13 @@ class DefaultSlotAssignerTest {
     private static final SlotInfo slot1OfTml3 = new TestingSlot(tml3);
     private static final SlotInfo slot2OfTml3 = new TestingSlot(tml3);
 
+    private static final TaskManagerLocation tml4 = new LocalTaskManagerLocation();
+    private static final SlotInfo slot1OfTml4 = new TestingSlot(tml4);
+    private static final SlotInfo slot2OfTml4 = new TestingSlot(tml4);
+    private static final SlotInfo slot3OfTml4 = new TestingSlot(tml4);
+    private static final SlotInfo slot4OfTml4 = new TestingSlot(tml4);
+    private static final SlotInfo slot5OfTml4 = new TestingSlot(tml4);
+
     private static final List<SlotInfo> allSlots =
             Arrays.asList(
                     slot1OfTml1,
@@ -67,7 +74,13 @@ class DefaultSlotAssignerTest {
                     slot2OfTml2,
                     slot3OfTml2,
                     slot1OfTml3,
-                    slot2OfTml3);
+                    slot2OfTml3,
+                    slot1OfTml4,
+                    slot2OfTml4,
+                    slot3OfTml4,
+                    slot4OfTml4,
+                    slot5OfTml4
+                    );
 
     private static final JobVertex jobVertex = new JobVertex("testingJobVertex");
     private static final SlotSharingGroup slotSharingGroup = new SlotSharingGroup();
@@ -108,8 +121,10 @@ class DefaultSlotAssignerTest {
                 new Object[] {
                     3,
                     Arrays.asList(slot1OfTml1, slot1OfTml2, slot2OfTml2, slot3OfTml2),
-                    Arrays.asList(tml1, tml2)
+                    singletonList(tml2)
                 },
-                new Object[] {7, allSlots, Arrays.asList(tml1, tml2, tml3)});
+                new Object[] {6, allSlots, Arrays.asList(tml1, tml2)},
+                new Object[] {7, allSlots, Arrays.asList(tml3, tml4)},
+                new Object[] {9, allSlots, Arrays.asList(tml1, tml3, tml4)});
     }
 }

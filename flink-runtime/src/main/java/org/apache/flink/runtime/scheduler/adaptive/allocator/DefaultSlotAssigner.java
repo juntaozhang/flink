@@ -18,6 +18,7 @@
 
 package org.apache.flink.runtime.scheduler.adaptive.allocator;
 
+import org.apache.flink.annotation.Internal;
 import org.apache.flink.runtime.jobmanager.scheduler.SlotSharingGroup;
 import org.apache.flink.runtime.jobmaster.SlotInfo;
 import org.apache.flink.runtime.scheduler.adaptive.JobSchedulingPlan.SlotAssignment;
@@ -81,11 +82,11 @@ public class DefaultSlotAssigner implements SlotAssigner {
      * prioritize selecting slots on task executors with the least available slots. This strategy
      * also ensures that relatively fewer task executors can be used in application-mode.
      */
-    private Iterator<TaskManagerLocation> getSortedTaskExecutors(
+    private List<TaskManagerLocation> getSortedTaskExecutors(
             Map<TaskManagerLocation, ? extends Set<? extends SlotInfo>> slotsPerTaskExecutor) {
         final Comparator<TaskManagerLocation> taskExecutorComparator =
                 Comparator.comparingInt(tml -> slotsPerTaskExecutor.get(tml).size());
-        return slotsPerTaskExecutor.keySet().stream().sorted(taskExecutorComparator).iterator();
+        return slotsPerTaskExecutor.keySet().stream().sorted(taskExecutorComparator).toList();
     }
 
     /**
@@ -99,11 +100,12 @@ public class DefaultSlotAssigner implements SlotAssigner {
             Map<TaskManagerLocation, ? extends Set<? extends SlotInfo>> slotsByTaskExecutor,
             int requestedGroups) {
         final List<SlotInfo> pickedSlots = new ArrayList<>();
-        final Iterator<TaskManagerLocation> sortedTaskExecutors =
-                getSortedTaskExecutors(slotsByTaskExecutor);
-        while (pickedSlots.size() < requestedGroups) {
-            Set<? extends SlotInfo> slotInfos = slotsByTaskExecutor.get(sortedTaskExecutors.next());
-            pickedSlots.addAll(slotInfos);
+        TaskExecutorSelector selector = new TaskExecutorSelector(
+                slotsByTaskExecutor,
+                requestedGroups);
+        List<TaskManagerLocation> minimalTaskExecutors = selector.pickMinimalTaskExecutors();
+        for (TaskManagerLocation taskExecutor : minimalTaskExecutors) {
+            pickedSlots.addAll(slotsByTaskExecutor.get(taskExecutor));
         }
         return pickedSlots;
     }
@@ -115,5 +117,72 @@ public class DefaultSlotAssigner implements SlotAssigner {
                         Collectors.groupingBy(
                                 SlotInfo::getTaskManagerLocation,
                                 Collectors.mapping(identity(), Collectors.toSet())));
+    }
+
+    /**
+     * The class is responsible for selecting the optimal set of task executors
+     * based on the number of requested groups and the available slots information for each task executor.
+     * It uses a backtracking algorithm to pick the minimal set of task executors that can fulfill the requested number of slots.
+     * See <a href="https://en.wikipedia.org/wiki/Backtracking">https://en.wikipedia.org/wiki/Backtracking</a> for more details
+     */
+    @Internal
+    private class TaskExecutorSelector {
+        private final Map<TaskManagerLocation, ? extends Set<? extends SlotInfo>> slotsByTaskExecutor;
+        private final int requestedGroups;
+        private final List<TaskManagerLocation> allTaskExecutors;
+        private final List<TaskManagerLocation> pickedTaskExecutors;
+        private final List<TaskManagerLocation> minimalTaskExecutors;
+
+        private TaskExecutorSelector(
+                Map<TaskManagerLocation, ? extends Set<? extends SlotInfo>> slotsByTaskExecutor,
+                int requestedGroups) {
+            this.slotsByTaskExecutor = slotsByTaskExecutor;
+            this.requestedGroups = requestedGroups;
+            this.allTaskExecutors = getSortedTaskExecutors(slotsByTaskExecutor);
+            this.minimalTaskExecutors = new ArrayList<>(this.allTaskExecutors);
+            this.pickedTaskExecutors = new ArrayList<>();
+        }
+
+        // Pick the minimal number of task executors that can satisfy the requested groups
+        public List<TaskManagerLocation> pickMinimalTaskExecutors() {
+            pickMinimalTaskExecutors(0);
+            return minimalTaskExecutors;
+        }
+
+        // Sum the total number of slots in taskExecutors
+        private int getTotalSlotsNumber(List<TaskManagerLocation> taskExecutors) {
+            return taskExecutors.stream()
+                    .mapToInt(tml -> slotsByTaskExecutor.get(tml).size())
+                    .sum();
+        }
+
+        // Recursively search the minimal number of task executors that can satisfy the requested groups
+        private void pickMinimalTaskExecutors(int index) {
+            int pickedSlotsNumber = getTotalSlotsNumber(pickedTaskExecutors);
+            if (pickedSlotsNumber >= requestedGroups) {
+                if (pickedSlotsNumber < getTotalSlotsNumber(minimalTaskExecutors)) {
+                    minimalTaskExecutors.clear();
+                    minimalTaskExecutors.addAll(pickedTaskExecutors);
+                }
+                return;
+            }
+
+            if (index >= this.allTaskExecutors.size()) {
+                return;
+            }
+            // Picked the current task executor
+            pickedTaskExecutors.add(allTaskExecutors.get(index));
+            pickMinimalTaskExecutors(index + 1);
+
+            // After picked current task executor, update the number of picked slots
+            pickedSlotsNumber = getTotalSlotsNumber(pickedTaskExecutors);
+
+            // Unpicked the current task executor
+            pickedTaskExecutors.remove(pickedTaskExecutors.size() - 1);
+            // Pruning: if the current number of picked slots is not enough, continue without the current task executor
+            if (pickedSlotsNumber < requestedGroups) {
+                pickMinimalTaskExecutors(index + 1);
+            }
+        }
     }
 }
