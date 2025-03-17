@@ -117,7 +117,7 @@ public final class SnapshotStrategyRunner<T extends StateObject, SR extends Snap
 
         long duration = (System.currentTimeMillis() - startTime);
 
-        LOG.debug(
+        LOG.info(
                 template, description, checkpointOutDescription, Thread.currentThread(), duration);
     }
 

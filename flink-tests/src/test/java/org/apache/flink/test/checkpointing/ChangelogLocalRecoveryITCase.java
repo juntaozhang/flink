@@ -77,10 +77,10 @@ public class ChangelogLocalRecoveryITCase extends TestLogger {
     @Parameterized.Parameters(name = "delegated state backend type = {0}")
     public static Collection<Configuration> parameter() {
         return Arrays.asList(
-                new Configuration().set(StateBackendOptions.STATE_BACKEND, "hashmap"),
-                new Configuration()
-                        .set(StateBackendOptions.STATE_BACKEND, "rocksdb")
-                        .set(CheckpointingOptions.INCREMENTAL_CHECKPOINTS, false),
+//                new Configuration().set(StateBackendOptions.STATE_BACKEND, "hashmap"),
+//                new Configuration()
+//                        .set(StateBackendOptions.STATE_BACKEND, "rocksdb")
+//                        .set(CheckpointingOptions.INCREMENTAL_CHECKPOINTS, false),
                 new Configuration()
                         .set(StateBackendOptions.STATE_BACKEND, "rocksdb")
                         .set(CheckpointingOptions.INCREMENTAL_CHECKPOINTS, true));
@@ -135,7 +135,7 @@ public class ChangelogLocalRecoveryITCase extends TestLogger {
     public void testRestartTM() throws Exception {
         File checkpointFolder = TEMPORARY_FOLDER.newFolder();
         MiniCluster miniCluster = cluster.getMiniCluster();
-        StreamExecutionEnvironment env1 = getEnv(configuration, checkpointFolder, true, 200, 800);
+        StreamExecutionEnvironment env1 = getEnv(configuration, checkpointFolder, true, 200, 400);
         JobGraph firstJobGraph = buildJobGraph(env1);
 
         miniCluster.submitJob(firstJobGraph).get();

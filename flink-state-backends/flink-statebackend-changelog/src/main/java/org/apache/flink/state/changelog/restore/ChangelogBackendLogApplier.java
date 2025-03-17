@@ -89,7 +89,7 @@ class ChangelogBackendLogApplier {
             ChangelogApplierFactory factory,
             Map<Short, StateID> stateIds)
             throws Exception {
-        LOG.debug("apply {} in key group {}", operation, keyGroup);
+        LOG.trace("apply {} in key group {}", operation, keyGroup);
         if (operation == METADATA) {
             applyMetaDataChange(in, changelogRestoreTarget, classLoader, stateIds);
         } else if (changelogRestoreTarget.getKeyGroupRange().contains(keyGroup)) {

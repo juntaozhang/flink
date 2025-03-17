@@ -68,6 +68,6 @@ public class StateChangeSet {
 
     @Override
     public String toString() {
-        return "logId=" + logId + ", sequenceNumber=" + sequenceNumber + ", changes=" + changes;
+        return "logId=" + logId + ", sequenceNumber=" + sequenceNumber + ", changes=" + changes.size();
     }
 }

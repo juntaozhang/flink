@@ -243,7 +243,7 @@ public class SharedStateRegistryImpl implements SharedStateRegistry {
     private void scheduleAsyncDelete(StreamStateHandle streamStateHandle) {
         // We do the small optimization to not issue discards for placeholders, which are NOPs.
         if (streamStateHandle != null && !isPlaceholder(streamStateHandle)) {
-            LOG.debug("Scheduled delete of state handle {}.", streamStateHandle);
+            LOG.info("Scheduled delete of state handle {}.", streamStateHandle);
             AsyncDisposalRunnable asyncDisposalRunnable =
                     new AsyncDisposalRunnable(streamStateHandle);
             try {

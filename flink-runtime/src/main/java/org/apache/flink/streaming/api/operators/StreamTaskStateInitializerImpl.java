@@ -224,7 +224,7 @@ public class StreamTaskStateInitializerImpl implements StreamTaskStateInitialize
                                 metricGroup,
                                 managedMemoryFraction,
                                 statsCollector,
-                                StateBackend::createKeyedStateBackend);
+                                (d, p) -> d.createKeyedStateBackend(p));
             }
 
             // -------------- Operator State Backend --------------

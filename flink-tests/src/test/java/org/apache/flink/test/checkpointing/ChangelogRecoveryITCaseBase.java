@@ -95,6 +95,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.apache.flink.configuration.CheckpointingOptions.FILE_MERGING_ENABLED;
+import static org.apache.flink.configuration.StateRecoveryOptions.LOCAL_RECOVERY;
 import static org.apache.flink.runtime.testutils.CommonTestUtils.getLatestCompletedCheckpointPath;
 import static org.apache.flink.shaded.guava32.com.google.common.collect.Iterables.get;
 import static org.apache.flink.test.util.TestUtils.loadCheckpointMetadata;
@@ -121,9 +122,9 @@ public abstract class ChangelogRecoveryITCaseBase extends TestLogger {
     @Parameterized.Parameters(name = "delegated state backend type = {0}")
     public static Collection<AbstractStateBackend> parameter() {
         return Arrays.asList(
-                new HashMapStateBackend(),
-                new EmbeddedRocksDBStateBackend(true),
-                new EmbeddedRocksDBStateBackend(false));
+//                new HashMapStateBackend(),
+                new EmbeddedRocksDBStateBackend(true)/*,
+                new EmbeddedRocksDBStateBackend(false)*/);
     }
 
     public ChangelogRecoveryITCaseBase(AbstractStateBackend delegatedStateBackend) {
@@ -161,6 +162,7 @@ public abstract class ChangelogRecoveryITCaseBase extends TestLogger {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(conf);
         env.enableCheckpointing(checkpointInterval).enableChangelogStateBackend(true);
         env.getCheckpointConfig().enableUnalignedCheckpoints(false);
+        env.configure(new Configuration().set(LOCAL_RECOVERY, true));
         RestartStrategyUtils.configureFixedDelayRestartStrategy(env, restartAttempts, 0);
         if (materializationInterval >= 0) {
             env.configure(

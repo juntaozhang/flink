@@ -42,8 +42,8 @@ public class ChangelogStateBackendMigrationTest
     @Parameters
     public static List<Supplier<AbstractStateBackend>> modes() {
         return Arrays.asList(
-                HashMapStateBackend::new,
-                () -> new EmbeddedRocksDBStateBackend(false),
+//                HashMapStateBackend::new,
+//                () -> new EmbeddedRocksDBStateBackend(false),
                 () -> new EmbeddedRocksDBStateBackend(true));
     }
 

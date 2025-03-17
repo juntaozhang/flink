@@ -46,7 +46,7 @@ class TaskChangelogRegistryImpl implements TaskChangelogRegistry {
     @Override
     public void startTracking(StreamStateHandle handle, long refCount) {
         Preconditions.checkState(refCount > 0, "Initial refCount of state must larger than zero");
-        LOG.debug(
+        LOG.info(
                 "start tracking state, key: {}, state: {}",
                 handle.getStreamStateHandleID(),
                 handle);
@@ -55,7 +55,7 @@ class TaskChangelogRegistryImpl implements TaskChangelogRegistry {
 
     @Override
     public void stopTracking(StreamStateHandle handle) {
-        LOG.debug(
+        LOG.info(
                 "stop tracking state, key: {}, state: {}", handle.getStreamStateHandleID(), handle);
         entries.remove(handle.getStreamStateHandleID());
     }
@@ -63,7 +63,7 @@ class TaskChangelogRegistryImpl implements TaskChangelogRegistry {
     @Override
     public void release(StreamStateHandle handle) {
         PhysicalStateHandleID key = handle.getStreamStateHandleID();
-        LOG.debug("state reference count decreased by one, key: {}, state: {}", key, handle);
+        LOG.info("state reference count decreased by one, key: {}, state: {}", key, handle);
 
         entries.compute(
                 key,
@@ -72,10 +72,10 @@ class TaskChangelogRegistryImpl implements TaskChangelogRegistry {
                         LOG.warn("state is not in tracking, key: {}, state: {}", key, handle);
                         return null;
                     }
-
+                    LOG.info("key {} current state reference count: {}", key, refCount);
                     long newRefCount = refCount - 1;
                     if (newRefCount == 0) {
-                        LOG.debug(
+                        LOG.info(
                                 "state is not used by any backend, schedule discard: {}/{}",
                                 key,
                                 handle);

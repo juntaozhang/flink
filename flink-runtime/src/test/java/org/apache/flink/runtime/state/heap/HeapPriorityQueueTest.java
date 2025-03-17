@@ -44,6 +44,21 @@ class HeapPriorityQueueTest extends InternalPriorityQueueTestBase {
     }
 
     @Test
+    void myTest() {
+        HeapPriorityQueue<TestElement> timerPriorityQueue = newPriorityQueue(1);
+        timerPriorityQueue.add(new TestElement(10,10));
+        timerPriorityQueue.add(new TestElement(2,2));
+        timerPriorityQueue.add(new TestElement(-12,-12));
+        timerPriorityQueue.add(new TestElement(-1,-1));
+        timerPriorityQueue.add(new TestElement(-13,-13));
+        timerPriorityQueue.add(new TestElement(-12,-12));
+        timerPriorityQueue.add(new TestElement(-12,-1));
+        while (!timerPriorityQueue.isEmpty()){
+            System.out.println(timerPriorityQueue.poll());
+        }
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void testToArray() {
 

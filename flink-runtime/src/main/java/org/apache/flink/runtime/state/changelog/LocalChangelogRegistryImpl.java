@@ -57,6 +57,7 @@ public class LocalChangelogRegistryImpl implements LocalChangelogRegistry {
         handleToLastUsedCheckpointID.compute(
                 handle.getStreamStateHandleID(),
                 (k, v) -> {
+                    LOG.warn("register=====>{} {}",handle, checkpointID);
                     if (v == null) {
                         return Tuple2.of(handle, checkpointID);
                     } else {
@@ -74,6 +75,7 @@ public class LocalChangelogRegistryImpl implements LocalChangelogRegistry {
             while (iterator.hasNext()) {
                 Tuple2<StreamStateHandle, Long> entry = iterator.next();
                 if (entry.f1 < upTo) {
+                    LOG.warn("discardUpToCheckpoint=====>{},{} upTo={}",entry.f0, entry.f1,upTo);
                     handles.add(entry.f0);
                     iterator.remove();
                 }

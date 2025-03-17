@@ -18,6 +18,7 @@
 package org.apache.flink.test.checkpointing;
 
 import org.apache.flink.api.common.JobID;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.minicluster.MiniCluster;
 import org.apache.flink.runtime.state.AbstractStateBackend;
 import org.apache.flink.runtime.state.StateBackendTestUtils;
@@ -34,6 +35,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.apache.flink.configuration.StateRecoveryOptions.LOCAL_RECOVERY;
 
 /**
  * This verifies that checkpointing works correctly for Changelog state backend with materialized
@@ -92,6 +95,7 @@ public class ChangelogRecoveryITCase extends ChangelogRecoveryITCaseBase {
         SharedReference<Set<StateHandleID>> currentMaterializationId =
                 sharedObjects.add(ConcurrentHashMap.newKeySet());
         StreamExecutionEnvironment env = getEnv(checkpointFolder, 100, 2, 200, 0);
+        env.setParallelism(1);
         waitAndAssert(
                 buildJobGraph(
                         delegatedStateBackend,

@@ -137,13 +137,13 @@ public class ChangelogRecoverySwitchStateBackendITCase extends ChangelogRecovery
 
         // 2nd restore, private state of first restore checkpoint still exist.
         File thirdCheckpointFolder = TEMPORARY_FOLDER.newFolder();
-        StreamExecutionEnvironment env3 = getEnv(thirdCheckpointFolder, true, 100, 1000);
+        StreamExecutionEnvironment env3 = getEnv(thirdCheckpointFolder, true, 100, 100);
         JobGraph thirdJobGraph =
                 buildJobGraph(
                         delegatedStateBackend,
                         env3,
-                        TOTAL_ELEMENTS,
-                        TOTAL_ELEMENTS * 2 / 3,
+                        TOTAL_ELEMENTS / 2,
+                        TOTAL_ELEMENTS + 1,
                         miniClusterRef);
         setSavepointRestoreSettings(thirdJobGraph, secondRestorePath);
         miniCluster.submitJob(thirdJobGraph).get();

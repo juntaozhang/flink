@@ -23,6 +23,8 @@ import org.apache.flink.runtime.state.KeyExtractorFunction;
 import org.apache.flink.runtime.state.KeyGroupRange;
 import org.apache.flink.runtime.state.PriorityComparator;
 
+import org.junit.jupiter.api.Test;
+
 import javax.annotation.Nonnull;
 
 /** Test for {@link KeyGroupPartitionedPriorityQueue}. */
@@ -49,6 +51,21 @@ class KeyGroupPartitionedPriorityQueueTest extends InternalPriorityQueueTestBase
                         initialCapacity,
                         KeyGroupRange.of(keyGroupId, keyGroupId),
                         numKeyGroups);
+    }
+
+    @Test
+    void myTest() {
+        InternalPriorityQueue<TestElement> timerPriorityQueue = newPriorityQueue(1);
+        timerPriorityQueue.add(new TestElement(10,10));
+        timerPriorityQueue.add(new TestElement(2,2));
+        timerPriorityQueue.add(new TestElement(-12,-12));
+        timerPriorityQueue.add(new TestElement(-1,-1));
+        timerPriorityQueue.add(new TestElement(-13,-13));
+        timerPriorityQueue.add(new TestElement(-12,-12));
+        timerPriorityQueue.add(new TestElement(-12,-1));
+        while (!timerPriorityQueue.isEmpty()){
+            System.out.println(timerPriorityQueue.poll());
+        }
     }
 
     @Override

@@ -17,6 +17,8 @@
  */
 package org.apache.flink.runtime.state.heap;
 
+import org.junit.jupiter.api.Test;
+
 /** Test for {@link HeapPriorityQueueSet}. */
 class HeapPriorityQueueSetTest extends HeapPriorityQueueTest {
 
@@ -33,5 +35,10 @@ class HeapPriorityQueueSetTest extends HeapPriorityQueueTest {
     @Override
     protected boolean testSetSemanticsAgainstDuplicateElements() {
         return true;
+    }
+
+    @Test
+    void myTest() {
+        super.myTest();
     }
 }
