@@ -30,6 +30,7 @@ import org.apache.flink.table.test.program.SourceTestStep;
 import org.apache.flink.types.ColumnList;
 import org.apache.flink.types.Row;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
@@ -225,6 +226,13 @@ public class ProcessTableFunctionTestUtils {
     public static class EmptyArgFunction extends TestProcessTableFunctionBase {
         public void eval() {
             collectObjects("empty");
+        }
+    }
+
+    /** Testing function. */
+    public static class IntervalArgFunction extends TestProcessTableFunctionBase {
+        public void eval(@DataTypeHint Duration d) {
+            collectObjects(d);
         }
     }
 
