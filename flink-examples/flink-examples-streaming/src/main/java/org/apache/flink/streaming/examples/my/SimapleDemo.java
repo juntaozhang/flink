@@ -1,0 +1,36 @@
+package org.apache.flink.streaming.examples.my;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.EnvironmentSettings;
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+
+public class SimapleDemo {
+    public static void main(String[] args) throws Exception {
+        // Set up the execution environment
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        EnvironmentSettings settings = EnvironmentSettings.newInstance().inStreamingMode().build();
+        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, settings);
+
+        // Define the Orders table
+        String createOrdersTable = "CREATE TEMPORARY TABLE Orders ("
+                + "order_number BIGINT, "
+                + "price DECIMAL(32, 2), "
+                + "order_time TIMESTAMP(3), WATERMARK FOR order_time AS order_time - INTERVAL '5' SECOND"
+                + ") WITH ("
+                + "'connector' = 'datagen', "
+                + "'rows-per-second' = '10', "
+                + "'fields.order_number.kind' = 'sequence', "
+                + "'fields.order_number.start' = '1', "
+                + "'fields.order_number.end' = '1000000', "
+                + "'fields.price.min' = '1', "
+                + "'fields.price.max' = '100' "
+                + ")";
+
+
+        // Execute the queries
+        tableEnv.executeSql(createOrdersTable);
+        tableEnv.executeSql("select order_time, price from Orders").print();
+
+
+    }
+}
