@@ -1,10 +1,10 @@
-package org.apache.flink.table.examples.java;
+package org.apache.flink.table.examples.java.my;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
-public class FlinkSQLDemo0 {
+public class FlinkSQLDemo2 {
     public static void main(String[] args) throws Exception {
         // Set up the execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -14,8 +14,8 @@ public class FlinkSQLDemo0 {
         // Define the Orders table
         String createOrdersTable = "CREATE TEMPORARY TABLE Orders ("
                 + "order_number BIGINT, "
-                + "price DECIMAL(32, 2), "
-                + "order_time TIMESTAMP(3), WATERMARK FOR order_time AS order_time - INTERVAL '5' SECOND"
+                + "price DECIMAL(38, 2), "
+                + "ts TIMESTAMP(3), WATERMARK FOR ts AS ts - INTERVAL '5' SECOND"
                 + ") WITH ("
                 + "'connector' = 'datagen', "
                 + "'rows-per-second' = '10', "
@@ -26,10 +26,31 @@ public class FlinkSQLDemo0 {
                 + "'fields.price.max' = '100' "
                 + ")";
 
+        String createPrintStatTable = "CREATE TEMPORARY TABLE print_stat ("
+                + "window_end STRING, "
+                + "order_num BIGINT, "
+                + "total_amount DECIMAL(38, 2) "
+                + ") WITH ("
+                + "'connector' = 'print' "
+                + ")";
+
+        String query =
+                "INSERT INTO print_stat SELECT\n"
+                        + "  CAST(TUMBLE_START(ts, INTERVAL '5' SECOND) AS STRING) window_start,\n"
+                        + "  COUNT(*) order_num,\n"
+                        + "  SUM(price) total_amount"
+                        + " FROM Orders\n"
+                        + " GROUP BY TUMBLE(ts, INTERVAL '5' SECOND) ";
+
+        System.out.println(createOrdersTable);
+        System.out.println(createPrintStatTable);
+        System.out.println(query);
+
 
         // Execute the queries
         tableEnv.executeSql(createOrdersTable);
-        tableEnv.executeSql("select order_time, price from Orders").print();
+        tableEnv.executeSql(createPrintStatTable);
+        tableEnv.executeSql(query);
 
 
     }
