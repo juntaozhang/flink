@@ -14,26 +14,22 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
-import com.google.common.collect.Lists;
 import lombok.Data;
 import lombok.val;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.DateUtils;
 
 import java.text.ParseException;
-import java.util.List;
+import java.time.Duration;
 
 /*
-nc –l 19998
-1#2021-05-08 11:10:01
+nc –l 9998
+1#1
 
-nc -l 19999
-1#1#2021-05-08 11:10:01
-2#1#2021-05-08 11:10:03
-2#1#2021-05-08 11:09:57
-2#1#2021-05-08 11:10:04
-2#1#2021-05-08 11:10:05
+nc -l 9999
+1#1#1
+2#1#3
+3#1#7
+4#1#4
+5#1#5
  */
 public class IntervalJoinExample {
     public static void main(String[] args) throws Exception {
@@ -51,7 +47,7 @@ public class IntervalJoinExample {
         OutputTag<Order> orderLateTag = new OutputTag<Order>("late-order") {};
 
         final SingleOutputStreamOperator<User> userDS =
-                env.socketTextStream("localhost", 19998, "\n", 1000)
+                env.socketTextStream("localhost", 9998, "\n", 1000)
                         .map(
                                 new RichMapFunction<String, User>() {
                                     @Override
@@ -61,14 +57,14 @@ public class IntervalJoinExample {
                                     }
                                 })
                         .assignTimestampsAndWatermarks(
-                                WatermarkStrategy.<User>forMonotonousTimestamps()
-                                        //
-                                        // .<User>forBoundedOutOfOrderness(Duration.ofSeconds(5))
+                                WatermarkStrategy
+                                        //.<User>forMonotonousTimestamps()
+                                         .<User>forBoundedOutOfOrderness(Duration.ofMillis(5))
                                         .withTimestampAssigner(
                                                 (event, timestamp) -> event.getEventTime()));
 
         final SingleOutputStreamOperator<Order> orderDS =
-                env.socketTextStream("localhost", 19999, "\n", 1000)
+                env.socketTextStream("localhost", 9999, "\n", 1000)
                         .map(
                                 new RichMapFunction<String, Order>() {
                                     @Override
@@ -87,7 +83,7 @@ public class IntervalJoinExample {
         val result =
                 userDS.keyBy(User::getUserId)
                         .intervalJoin(orderDS.keyBy(Order::getUserId))
-                        .between(Time.seconds(-2), Time.seconds(2))
+                        .between(Time.milliseconds(-1), Time.milliseconds(2))
                         .sideOutputLeftLateData(userLateTag)
                         .sideOutputRightLateData(orderLateTag)
                         .process(
@@ -98,7 +94,7 @@ public class IntervalJoinExample {
                                             Order order,
                                             Context context,
                                             Collector<User> collector) {
-                                        user.orders.add(order);
+                                        user.setOrder(order);
                                         collector.collect(user);
                                     }
                                 });
@@ -113,22 +109,20 @@ public class IntervalJoinExample {
     public static class User {
         private final String userId;
         private final long eventTime;
-        private final List<Order> orders;
+        private Order order;
 
         public User(String userId, String eventTime) throws ParseException {
             this.userId = userId;
-            this.eventTime = DateUtils.parseDate(eventTime, "yyyy-MM-dd HH:mm:ss").getTime();
-            this.orders = Lists.newArrayList();
+            this.eventTime = Long.parseLong(eventTime);
         }
 
         @Override
         public String toString() {
-            return userId
-                    + "{eventTime="
-                    + DateFormatUtils.format(eventTime, "HH:mm:ss")
-                    + ", orders=["
-                    + StringUtils.join(orders, "|")
-                    + "]}";
+            return "User{" +
+                    "userId='" + userId + '\'' +
+                    ", eventTime=" + eventTime +
+                    ", " + order +
+                    '}';
         }
     }
 
@@ -141,18 +135,16 @@ public class IntervalJoinExample {
         public Order(String id, String userId, String eventTime) throws ParseException {
             this.id = id;
             this.userId = userId;
-            this.eventTime = DateUtils.parseDate(eventTime, "yyyy-MM-dd HH:mm:ss").getTime();
+            this.eventTime = Long.parseLong(eventTime);
         }
 
         @Override
         public String toString() {
-            return "Order{"
-                    + "id='"
-                    + id
-                    + '\''
-                    + ", eventTime="
-                    + DateFormatUtils.format(eventTime, "HH:mm:ss")
-                    + '}';
+            return "Order{" +
+                    "id='" + id + '\'' +
+                    ", userId='" + userId + '\'' +
+                    ", eventTime=" + eventTime +
+                    '}';
         }
     }
 }

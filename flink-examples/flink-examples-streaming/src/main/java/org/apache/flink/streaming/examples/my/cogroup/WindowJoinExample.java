@@ -24,11 +24,11 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /*
-nc –lk 19998
-1#1
+nc –lk 9998
+1,1
 
-nc -lk 19999
-1#1
+nc -lk 9999
+1,1
  */
 public class WindowJoinExample {
     public static void main(String[] args) throws Exception {
@@ -38,23 +38,23 @@ public class WindowJoinExample {
         conf.setLong(HeartbeatManagerOptions.HEARTBEAT_TIMEOUT, 600_000);
         final StreamExecutionEnvironment env =
                 StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf);
-        env.setStateBackend(new EmbeddedRocksDBStateBackend());
-        env.enableCheckpointing(30_000);
-        env.getCheckpointConfig()
-                .setCheckpointStorage(
-                        Paths.get("checkpoints/" + WindowJoinExample.class.getSimpleName())
-                                .toUri()
-                                .toString());
+//        env.setStateBackend(new EmbeddedRocksDBStateBackend());
+//        env.enableCheckpointing(30_000);
+//        env.getCheckpointConfig()
+//                .setCheckpointStorage(
+//                        Paths.get("checkpoints/" + WindowJoinExample.class.getSimpleName())
+//                                .toUri()
+//                                .toString());
         env.setParallelism(1);
-        env.getCheckpointConfig()
-                .setExternalizedCheckpointCleanup(
-                        CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-        env.setRestartStrategy(
-                RestartStrategies.fixedDelayRestart(
-                        10, org.apache.flink.api.common.time.Time.seconds(10)));
+//        env.getCheckpointConfig()
+//                .setExternalizedCheckpointCleanup(
+//                        CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
+//        env.setRestartStrategy(
+//                RestartStrategies.fixedDelayRestart(
+//                        10, org.apache.flink.api.common.time.Time.seconds(10)));
         final SingleOutputStreamOperator<User> userDS =
-                env.socketTextStream("localhost", 19998, "\n", 1000)
-                        .name("19998")
+                env.socketTextStream("localhost", 9998, "\n", 1000)
+                        .name("9998")
                         .filter(StringUtils::isNotBlank)
                         .map(
                                 new RichMapFunction<String, User>() {
@@ -70,8 +70,8 @@ public class WindowJoinExample {
                                                 (event, timestamp) -> event.getEventTime()));
 
         final SingleOutputStreamOperator<Order> orderDS =
-                env.socketTextStream("localhost", 19999, "\n", 1000)
-                        .name("19999")
+                env.socketTextStream("localhost", 9999, "\n", 1000)
+                        .name("9999")
                         .filter(StringUtils::isNotBlank)
                         .map(
                                 new RichMapFunction<String, Order>() {
