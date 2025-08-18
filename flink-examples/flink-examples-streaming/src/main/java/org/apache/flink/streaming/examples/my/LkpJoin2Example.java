@@ -81,6 +81,13 @@ public class LkpJoin2Example {
                     'url' = 'jdbc:postgresql://localhost:5432/postgres',
                     'table-name' = 'rates',
                     'username' = 'postgres',
+                    -- ⭐ 开启异步 lookup (AsyncLookupFunction) not support
+                    --'lookup.async' = 'true',
+                    --'lookup.async.capacity' = '3',
+                    --'lookup.async.timeout' = '3s',
+                    -- ⭐ 开启缓存（内部就是 CachingLookupFunction）
+                    'lookup.cache.max-rows' = '3',
+                    'lookup.cache.ttl' = '10s',
                     'password' = 'root'
                   )
                 """);
