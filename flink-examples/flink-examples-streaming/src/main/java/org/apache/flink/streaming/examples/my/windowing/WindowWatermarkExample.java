@@ -3,6 +3,10 @@ package org.apache.flink.streaming.examples.my.windowing;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.HeartbeatManagerOptions;
+import org.apache.flink.configuration.RestOptions;
+import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -15,6 +19,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 
@@ -32,23 +37,25 @@ public class WindowWatermarkExample {
 
     public void run(String[] args) throws Exception {
         log.info("args ==> {}", StringUtils.join(args, ","));
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        //        Configuration conf = new Configuration();
-        //                conf.setInteger(RestOptions.PORT, 8082);
-        //        conf.setInteger(TaskManagerOptions.NUM_TASK_SLOTS, 16);
-        //        conf.setLong(HeartbeatManagerOptions.HEARTBEAT_TIMEOUT, 600_000);
-        //        final StreamExecutionEnvironment env =
-        //                StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf);
-        //        env.setParallelism(1);
-        //        env.enableCheckpointing(30_000);
-        //        env.getCheckpointConfig()
-        //                .setCheckpointStorage(
-        //                        Paths.get("/tmp/" + WindowWatermarkExample.class.getSimpleName())
-        //                                .toUri()
-        //                                .toString());
-        //        env.getCheckpointConfig().enableUnalignedCheckpoints();
-        //        env.getCheckpointConfig()
-        //                .setExternalizedCheckpointCleanup(
+//        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+//        env.setParallelism(1);
+        Configuration conf = new Configuration();
+        conf.setInteger(RestOptions.PORT, 8082);
+        conf.setInteger(TaskManagerOptions.NUM_TASK_SLOTS, 16);
+        conf.setLong(HeartbeatManagerOptions.HEARTBEAT_TIMEOUT, 600_000);
+        final StreamExecutionEnvironment env =
+                StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf);
+        env.setParallelism(1);
+        env.enableCheckpointing(30_000);
+        env.getCheckpointConfig()
+                .setCheckpointStorage(
+                        Paths.get("/tmp/" + WindowWatermarkExample.class.getSimpleName())
+                                .toUri()
+                                .toString());
+
+//        env.getCheckpointConfig().enableUnalignedCheckpoints();
+//        env.getCheckpointConfig()
+//                .setExternalizedCheckpointCleanup(
         //
         // CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
         //        env.setRestartStrategy(
@@ -56,10 +63,11 @@ public class WindowWatermarkExample {
         //                        10, org.apache.flink.api.common.time.Time.seconds(10)));
 
         env.setStateBackend(new EmbeddedRocksDBStateBackend());
-        OutputTag<User> lateDataTag = new OutputTag<User>("late") {};
+        OutputTag<User> lateDataTag = new OutputTag<User>("late") {
+        };
 
         final SingleOutputStreamOperator<User> a =
-                env.socketTextStream(args[0], Integer.parseInt(args[1]), "\n", 1000)
+                env.socketTextStream("localhost", 19999, "\n", 1000)
                         .map(
                                 new RichMapFunction<String, User>() {
                                     @Override
@@ -69,21 +77,20 @@ public class WindowWatermarkExample {
                                     }
                                 })
                         .assignTimestampsAndWatermarks(
-                                WatermarkStrategy.<User>forMonotonousTimestamps()
-                                        //
-                                        // .<User>forBoundedOutOfOrderness(Duration.ofSeconds(2))
+                                WatermarkStrategy
+//                                         .<User>forMonotonousTimestamps()
+                                         .<User>forBoundedOutOfOrderness(Duration.ofMillis(2))
                                         .withTimestampAssigner(
                                                 (event, timestamp) -> event.getEventTime())
-                                        .withIdleness(Duration.ofMillis(10))
+//                                        .withIdleness(Duration.ofMillis(10)) // 用于处理空闲输入的特性。它主要用于解决在多并行度数据流中，某些分区或数据源在一段时间内没有数据流入时，导致 Watermark 无法正常推进的问题
                                 // todo 两个数据源，一个快，一个慢，watermarkGroup设置相同，看看是否会对齐
-                                // .withWatermarkAlignment("my-watermark-group",
-                                // Duration.ofSeconds(5))
-                                );
+                                // .withWatermarkAlignment("my-watermark-group", Duration.ofMillis(5))
+                        );
 
         final SingleOutputStreamOperator<User> b =
                 a.keyBy(User::getId)
                         .window(TumblingEventTimeWindows.of(Time.milliseconds(5)))
-                        // .allowedLateness(Time.seconds(2))
+//                         .allowedLateness(Time.seconds(2))
                         .sideOutputLateData(lateDataTag)
                         .aggregate(
                                 new AggregateFunction<User, User, User>() {
@@ -132,7 +139,7 @@ public class WindowWatermarkExample {
     }
 
     @Data
-    static class User {
+    public static class User {
         private String id;
         private long eventTime;
         private List<Long> tracking;
