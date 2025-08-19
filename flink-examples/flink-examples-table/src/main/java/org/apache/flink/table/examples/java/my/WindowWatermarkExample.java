@@ -1,8 +1,12 @@
+// CHECKSTYLE.OFF:
 package org.apache.flink.table.examples.java.my;
 
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
+import org.apache.flink.configuration.CheckpointingOptions;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.RestOptions;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
@@ -12,6 +16,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,32 +32,32 @@ public class WindowWatermarkExample {
     }
 
     public void run(String[] args) throws Exception {
+        String baseDir =
+                Paths.get("checkpoints/" + WindowWatermarkExample.class.getSimpleName()).toUri().toString();
         log.info("args ==> {}", StringUtils.join(args, ","));
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(1);
-        //        Configuration conf = new Configuration();
-        //                conf.setInteger(RestOptions.PORT, 8082);
+//        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+//        env.setParallelism(1);
+        Configuration conf = new Configuration();
+        conf.set(RestOptions.PORT, 8082);
+        // enableCheckpointing
+        conf.set(CheckpointingOptions.CHECKPOINTING_INTERVAL, Duration.ofSeconds(10));
+        conf.set(CheckpointingOptions.CHECKPOINT_STORAGE, "filesystem");
+        conf.set(CheckpointingOptions.CHECKPOINTS_DIRECTORY, baseDir + "/checkpointing/");
+
         //        conf.setInteger(TaskManagerOptions.NUM_TASK_SLOTS, 16);
         //        conf.setLong(HeartbeatManagerOptions.HEARTBEAT_TIMEOUT, 600_000);
-        //        final StreamExecutionEnvironment env =
-        //                StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf);
-        //        env.setParallelism(1);
-        //        env.enableCheckpointing(30_000);
-        //        env.getCheckpointConfig()
-        //                .setCheckpointStorage(
-        //                        Paths.get("/tmp/" + WindowWatermarkExample.class.getSimpleName())
-        //                                .toUri()
-        //                                .toString());
-        //        env.getCheckpointConfig().enableUnalignedCheckpoints();
+        final StreamExecutionEnvironment env =
+                StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf);
+//                env.getCheckpointConfig().enableUnalignedCheckpoints();
         //        env.getCheckpointConfig()
         //                .setExternalizedCheckpointCleanup(
-        //
         // CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
         //        env.setRestartStrategy(
         //                RestartStrategies.fixedDelayRestart(
         //                        10, org.apache.flink.api.common.time.Time.seconds(10)));
 
-        OutputTag<User> lateDataTag = new OutputTag<User>("late") {};
+        OutputTag<User> lateDataTag = new OutputTag<User>("late") {
+        };
 
         final SingleOutputStreamOperator<User> a =
                 env.socketTextStream("localhost", 9999, "\n", 1000)
@@ -65,9 +70,9 @@ public class WindowWatermarkExample {
                                     }
                                 })
                         .assignTimestampsAndWatermarks(
-                                WatermarkStrategy.<User>forMonotonousTimestamps()
-                                        //
-                                        // .<User>forBoundedOutOfOrderness(Duration.ofSeconds(2))
+                                WatermarkStrategy
+                                        // .<User>forMonotonousTimestamps()
+                                        .<User>forBoundedOutOfOrderness(Duration.ofMillis(2))
                                         .withTimestampAssigner(
                                                 (event, timestamp) -> event.getEventTime())
                                 //
@@ -77,7 +82,7 @@ public class WindowWatermarkExample {
                                 // todo 两个数据源，一个快，一个慢，watermarkGroup设置相同，看看是否会对齐
                                 // .withWatermarkAlignment("my-watermark-group",
                                 // Duration.ofSeconds(5))
-                                );
+                        );
 
         final SingleOutputStreamOperator<User> b =
                 a.keyBy(User::getId)
