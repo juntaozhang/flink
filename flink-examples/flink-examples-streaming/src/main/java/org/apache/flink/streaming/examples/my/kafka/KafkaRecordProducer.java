@@ -14,7 +14,7 @@ import static org.apache.flink.streaming.examples.my.kafka.KafkaExample.getNumbe
 
 @Slf4j
 public class KafkaRecordProducer {
-    private final String topic = "test-input3";
+    private final String topic = "test-input1";
     private final String brokers = "localhost:29092,localhost:39092,localhost:49092";
     private volatile boolean running = true;
 
@@ -46,14 +46,14 @@ public class KafkaRecordProducer {
                     log.error(e.getMessage(), e);
                 }
 
-                if (i % 5 == 0) {
-                    metadataFuture = producer.send(new ProducerRecord<>(topic, UserEvent.watermark(i)));
-                    try {
-                        log.info("sent watermark record => {}", metadataFuture.get().toString());
-                    } catch (Exception e) {
-                        log.error(e.getMessage(), e);
-                    }
-                }
+//                if (i % 5 == 0) {
+//                    metadataFuture = producer.send(new ProducerRecord<>(topic, UserEvent.watermark(i)));
+//                    try {
+//                        log.info("sent watermark record => {}", metadataFuture.get().toString());
+//                    } catch (Exception e) {
+//                        log.error(e.getMessage(), e);
+//                    }
+//                }
 
                 i += 1;
                 try {
