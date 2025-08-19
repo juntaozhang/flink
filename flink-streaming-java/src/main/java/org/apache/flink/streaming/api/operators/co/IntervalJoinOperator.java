@@ -255,6 +255,7 @@ public class IntervalJoinOperator<K, T1, T2, OUT>
 
         long cleanupTime =
                 (relativeUpperBound > 0L) ? ourTimestamp + relativeUpperBound : ourTimestamp;
+        logger.info("Registering cleanup timer @ {}", cleanupTime);
         if (isLeft) {
             internalTimerService.registerEventTimeTimer(CLEANUP_NAMESPACE_LEFT, cleanupTime);
         } else {
@@ -316,7 +317,7 @@ public class IntervalJoinOperator<K, T1, T2, OUT>
                 {
                     long timestamp =
                             (upperBound <= 0L) ? timerTimestamp : timerTimestamp - upperBound;
-                    logger.trace("Removing from left buffer @ {}", timestamp);
+                    logger.info("Removing from left buffer @ {}", timestamp);
                     leftBuffer.remove(timestamp);
                     break;
                 }
@@ -324,7 +325,7 @@ public class IntervalJoinOperator<K, T1, T2, OUT>
                 {
                     long timestamp =
                             (lowerBound <= 0L) ? timerTimestamp + lowerBound : timerTimestamp;
-                    logger.trace("Removing from right buffer @ {}", timestamp);
+                    logger.info("Removing from right buffer @ {}", timestamp);
                     rightBuffer.remove(timestamp);
                     break;
                 }

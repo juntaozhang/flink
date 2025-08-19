@@ -594,7 +594,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
         }
         assertNoException(
                 resumeFuture.thenRun(
-                        new ResumeWrapper(controller.suspendDefaultAction(timer), timer)));
+                        new ResumeWrapper(controller.suspendDefaultAction(timer), timer, this, resumeFuture)));
     }
 
     protected void endData(StopMode mode) throws Exception {
@@ -1725,13 +1725,17 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
     private static class ResumeWrapper implements Runnable {
         private final Suspension suspendedDefaultAction;
         @Nullable private final PeriodTimer timer;
+        @Nullable private final StreamTask task;
+        CompletableFuture<?> resumeFuture;
 
-        public ResumeWrapper(Suspension suspendedDefaultAction, @Nullable PeriodTimer timer) {
+        public ResumeWrapper(Suspension suspendedDefaultAction, @Nullable PeriodTimer timer, StreamTask task,CompletableFuture<?> resumeFuture) {
             this.suspendedDefaultAction = suspendedDefaultAction;
             if (timer != null) {
                 timer.markStart();
             }
             this.timer = timer;
+            this.task = task;
+            this.resumeFuture = resumeFuture;
         }
 
         @Override

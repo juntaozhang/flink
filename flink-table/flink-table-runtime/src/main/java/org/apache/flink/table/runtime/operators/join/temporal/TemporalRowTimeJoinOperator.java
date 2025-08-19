@@ -198,9 +198,11 @@ public class TemporalRowTimeJoinOperator extends BaseTwoInputStreamOperatorWithS
 
     @Override
     public void onEventTime(InternalTimer<Object, VoidNamespace> timer) throws Exception {
+        System.out.println("onEventTime timer " + timer.getTimestamp());
         registeredTimer.clear();
         long lastUnprocessedTime = emitResultAndCleanUpState(timerService.currentWatermark());
         if (lastUnprocessedTime < Long.MAX_VALUE) {
+            System.out.println("onEventTime registerTimer " + lastUnprocessedTime);
             registerTimer(lastUnprocessedTime);
         }
 
@@ -382,6 +384,7 @@ public class TemporalRowTimeJoinOperator extends BaseTwoInputStreamOperatorWithS
     }
 
     private void registerTimer(long timestamp) throws IOException {
+        System.out.println("===> registerTimer: "+ timestamp);
         registeredTimer.update(timestamp);
         timerService.registerEventTimeTimer(VoidNamespace.INSTANCE, timestamp);
     }

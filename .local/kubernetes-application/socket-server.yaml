@@ -31,8 +31,8 @@ metadata:
   labels:
     app: socket-server
 spec:
-  type: NodePort
-#  type: LoadBalancer
+#  type: NodePort
+  type: LoadBalancer
   selector:
     app: socket-server
   ports:

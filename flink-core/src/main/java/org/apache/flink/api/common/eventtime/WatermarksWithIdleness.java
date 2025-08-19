@@ -79,6 +79,7 @@ public class WatermarksWithIdleness<T> implements WatermarkGenerator<T> {
             }
         } else {
             watermarks.onPeriodicEmit(output);
+            System.out.println("onPeriodicEmit==================>");
         }
     }
 
